@@ -1,24 +1,45 @@
-import React, { useLayoutEffect } from 'react';
-import rough from 'roughjs';
-const generator = rough.generator();
+import React, { useLayoutEffect, useState } from 'react';
+
+type ElementsDefain = { clientX: number; clientY: number }[];
 
 function App() {
+  const [centext, setContext] = useState<CanvasRenderingContext2D | null>();
+  const [elements, setElements] = useState<ElementsDefain>([]);
+  const [drawing, setDrawing] = useState(false);
   useLayoutEffect(() => {
-    const canvas = document.querySelector('#Vanvas') as HTMLCanvasElement;
+    const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
+    setContext(ctx);
 
-    const roughCanvas = rough.canvas(canvas);
-    const rect = generator.rectangle(10, 10, 100, 100);
-    roughCanvas.draw(rect);
-  }, []);
+    ctx?.strokeRect(0, 0, 10, 1);
+  });
+
+  const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    setDrawing(true);
+    const { clientX, clientY } = event;
+    const elemnts = { clientX, clientY };
+    centext?.strokeRect(clientX, clientY, 1, 1);
+    setElements(prevState => [...prevState, elemnts]);
+  };
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!drawing) return;
+    const { clientX, clientY } = event;
+    centext?.strokeRect(clientX, clientY, 1, 1);
+    console.log(clientX, clientY);
+  };
+  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    setDrawing(false);
+  };
+
   return (
-    <div className="App">
-      <canvas
-        id="Canvas"
-        width={window.innerWidth}
-        height={window.innerHeight}
-      ></canvas>
-    </div>
+    <canvas
+      id="Canvas"
+      width={window.innerWidth}
+      height={window.innerHeight}
+      onMouseDown={handleMouseDoun}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    ></canvas>
   );
 }
 
