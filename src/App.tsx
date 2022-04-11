@@ -1,38 +1,56 @@
 import React, { useLayoutEffect, useState } from 'react';
 
-type ElementsDefain = { clientX: number; clientY: number }[];
+interface PointTarget {
+  pointX: number;
+  pointY: number;
+}
 
 function App() {
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>();
-  const [elements, setElements] = useState<ElementsDefain>([]);
+  //const [canvasOffset, setCanvasOffset] = useState<CanvasOffset | null>(null);
+  //const [elements, setElements] = useState<ElementsDefain>([]);
   const [drawing, setDrawing] = useState(false);
+  const [startTarget, setStartTarget] = useState<PointTarget | null>(null);
+  //const [moveTarget, setMoveTarget] = useState<PointTarget | null>(null);
   useLayoutEffect(() => {
     const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
-    setCtx(ctx);
 
-    ctx?.strokeRect(0, 0, 10, 1);
+    setCtx(ctx);
   });
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    setDrawing(true);
-    const { clientX, clientY } = event;
-    //const elemnts = { clientX, clientY };
-    ctx?.beginPath();
-    ctx?.moveTo(clientX, clientY);
-    ctx?.stroke();
+    event.preventDefault();
+    console.log(event.clientX, event.clientY);
 
-    //setElements(prevState => [...prevState, elemnts]);
+    setStartTarget({
+      pointX: event.clientX,
+      pointY: event.clientY,
+    });
+
+    setDrawing(true);
+    console.log(startTarget);
+  };
+  const handleMouseOut = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+
+    setDrawing(false);
   };
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing) return;
-    const { clientX, clientY } = event;
+    event.preventDefault();
+
+    ctx?.beginPath();
+    ctx?.moveTo(startTarget?.pointX as number, startTarget?.pointY as number);
+    ctx?.lineTo(event.clientX, event.clientY);
+    ctx?.stroke();
+    setStartTarget({
+      pointX: event.clientX,
+      pointY: event.clientY,
+    });
   };
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const { clientX, clientY } = event;
-
-    ctx?.lineTo(clientX, clientY);
-    ctx?.stroke();
+    event.preventDefault();
     setDrawing(false);
   };
 
@@ -43,6 +61,7 @@ function App() {
       height={window.innerHeight}
       onMouseDown={handleMouseDoun}
       onMouseMove={handleMouseMove}
+      onMouseOut={handleMouseOut}
       onMouseUp={handleMouseUp}
     ></canvas>
   );
