@@ -1,17 +1,30 @@
 import React, { useLayoutEffect, useState } from 'react';
 
-interface PointTarget {
-  pointX: number;
-  pointY: number;
+interface PositionTarget {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
 }
+
+const createElement = (
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  ctx: CanvasRenderingContext2D
+) => {
+  ctx?.beginPath();
+  ctx?.moveTo(startX, startY);
+  ctx?.lineTo(endX, endY);
+  ctx?.stroke();
+  return { endX, endY };
+};
 
 function App() {
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>();
-  //const [canvasOffset, setCanvasOffset] = useState<CanvasOffset | null>(null);
-  //const [elements, setElements] = useState<ElementsDefain>([]);
+  const [element, setElement] = useState<PositionTarget[]>([]);
   const [drawing, setDrawing] = useState(false);
-  const [startTarget, setStartTarget] = useState<PointTarget | null>(null);
-  //const [moveTarget, setMoveTarget] = useState<PointTarget | null>(null);
   useLayoutEffect(() => {
     const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
@@ -23,13 +36,16 @@ function App() {
     event.preventDefault();
     console.log(event.clientX, event.clientY);
 
-    setStartTarget({
-      pointX: event.clientX,
-      pointY: event.clientY,
+    const mousePositon: PositionTarget = {
+      startX: event.clientX,
+      startY: event.clientY,
+      endX: event.clientX,
+      endY: event.clientY,
+    };
+    setElement(prev => {
+      return [...prev, mousePositon];
     });
-
     setDrawing(true);
-    console.log(startTarget);
   };
   const handleMouseOut = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
@@ -39,14 +55,22 @@ function App() {
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing) return;
     event.preventDefault();
+    const index = element.length - 1;
+    const { startX, startY } = element[index];
+    const updateElements = createElement(
+      startX,
+      startY,
+      event.clientX,
+      event.clientY,
+      ctx as CanvasRenderingContext2D
+    );
 
-    ctx?.beginPath();
-    ctx?.moveTo(startTarget?.pointX as number, startTarget?.pointY as number);
-    ctx?.lineTo(event.clientX, event.clientY);
-    ctx?.stroke();
-    setStartTarget({
-      pointX: event.clientX,
-      pointY: event.clientY,
+    setElement(prev => {
+      const array = [...prev];
+      const index = array.length - 1;
+      array[index].startX = updateElements.endX;
+      array[index].startY = updateElements.endY;
+      return [...array];
     });
   };
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
