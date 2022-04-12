@@ -79,15 +79,22 @@ function App() {
   };
 
   return (
-    <canvas
-      id="Canvas"
-      width={window.innerWidth}
-      height={window.innerHeight}
-      onMouseDown={handleMouseDoun}
-      onMouseMove={handleMouseMove}
-      onMouseOut={handleMouseOut}
-      onMouseUp={handleMouseUp}
-    ></canvas>
+    <>
+      <div>
+        <input type="checkbox" name="" id="" />
+        <label>Brush</label>
+        <input type="checkbox" name="" id="" />
+      </div>
+      <canvas
+        id="Canvas"
+        width={window.innerWidth}
+        height={window.innerHeight}
+        onMouseDown={handleMouseDoun}
+        onMouseMove={handleMouseMove}
+        onMouseOut={handleMouseOut}
+        onMouseUp={handleMouseUp}
+      ></canvas>
+    </>
   );
 }
 
