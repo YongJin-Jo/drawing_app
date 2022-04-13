@@ -1,40 +1,20 @@
 import React, { useLayoutEffect, useState } from 'react';
-
-interface PositionTarget {
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-}
-
-const createElement = (
-  startX: number,
-  startY: number,
-  endX: number,
-  endY: number,
-  ctx: CanvasRenderingContext2D
-) => {
-  ctx?.beginPath();
-  ctx?.moveTo(startX, startY);
-  ctx?.lineTo(endX, endY);
-  ctx?.stroke();
-  return { endX, endY };
-};
+import { PositionTarget } from './type/CanvasDefine';
+import { drawTool } from './util/drawTool';
 
 function App() {
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>();
+  const [canvas, setCanvas] = useState<HTMLCanvasElement>();
+  const [toolType, setToolType] = useState<string>('none');
   const [element, setElement] = useState<PositionTarget[]>([]);
   const [drawing, setDrawing] = useState(false);
   useLayoutEffect(() => {
     const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
 
-    setCtx(ctx);
+    setCanvas(canvas);
   });
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
-    console.log(event.clientX, event.clientY);
 
     const mousePositon: PositionTarget = {
       startX: event.clientX,
@@ -57,12 +37,14 @@ function App() {
     event.preventDefault();
     const index = element.length - 1;
     const { startX, startY } = element[index];
-    const updateElements = createElement(
+    const tool = drawTool(canvas as HTMLCanvasElement);
+
+    const updateElements = tool(
+      toolType,
       startX,
       startY,
       event.clientX,
-      event.clientY,
-      ctx as CanvasRenderingContext2D
+      event.clientY
     );
 
     setElement(prev => {
@@ -81,9 +63,30 @@ function App() {
   return (
     <>
       <div>
-        <input type="checkbox" name="" id="" />
+        <input
+          type="checkbox"
+          value={'Brush'}
+          onChange={() => {
+            setToolType('Brush');
+          }}
+        />
         <label>Brush</label>
-        <input type="checkbox" name="" id="" />
+        <input
+          type="checkbox"
+          value={'Line'}
+          onChange={() => {
+            setToolType('Line');
+          }}
+        />
+        <label>Line</label>
+        <input
+          type="checkbox"
+          value={'Rect'}
+          onChange={() => {
+            setToolType('Rect');
+          }}
+        />
+        <label>Rect</label>
       </div>
       <canvas
         id="Canvas"
