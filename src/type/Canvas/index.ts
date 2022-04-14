@@ -3,6 +3,7 @@ interface PositionTarget {
   startY: number;
   endX: number;
   endY: number;
+  toolType?: string;
 }
 
 export type { PositionTarget };
