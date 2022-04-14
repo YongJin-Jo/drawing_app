@@ -1,3 +1,5 @@
+import { PositionTarget } from '../type/Canvas';
+
 function drawTool(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   return function (
@@ -7,17 +9,19 @@ function drawTool(canvas: HTMLCanvasElement) {
     endX: number,
     endY: number
   ) {
+    let roughElement;
     if (toolType === 'Brush') {
-      brushTool(ctx, startX, startY, endX, endY);
+      roughElement = brushTool(ctx, startX, startY, endX, endY);
     } else if (toolType === 'Line') {
-      lineTool(ctx, startX, startY, endX, endY);
+      roughElement = lineTool(ctx, startX, startY, endX, endY);
     } else if (toolType === 'Rect') {
-      rectTool(ctx, startX, startY, endX, endY);
+      roughElement = rectTool(ctx, startX, startY, endX, endY);
     }
-    return { endX, endY };
+    return { ...roughElement, toolType } as PositionTarget;
   };
 }
 
+// 브러쉬
 function brushTool(
   ctx: CanvasRenderingContext2D,
   startX: number,
@@ -29,8 +33,10 @@ function brushTool(
   ctx.moveTo(startX, startY);
   ctx.lineTo(endX, endY);
   ctx.stroke();
+  return { startX: endX, startY: endY, endX, endY };
 }
 
+// 직석
 export { drawTool };
 function lineTool(
   ctx: CanvasRenderingContext2D,
@@ -39,9 +45,14 @@ function lineTool(
   endX: number,
   endY: number
 ) {
-  throw new Error('Function not implemented.');
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.stroke();
+  return { startX, startY, endX, endY };
 }
 
+//사각형
 function rectTool(
   ctx: CanvasRenderingContext2D,
   startX: number,
@@ -49,5 +60,8 @@ function rectTool(
   endX: number,
   endY: number
 ) {
-  throw new Error('Function not implemented.');
+  ctx.beginPath();
+  ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+  ctx.stroke();
+  return { startX, startY, endX, endY };
 }

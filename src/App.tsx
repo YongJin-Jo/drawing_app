@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from 'react';
-import { PositionTarget } from './type/CanvasDefine';
+import { PositionTarget } from './type/Canvas';
 import { drawTool } from './util/drawTool';
 
 function App() {
@@ -9,9 +9,9 @@ function App() {
   const [drawing, setDrawing] = useState(false);
   useLayoutEffect(() => {
     const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
-
+    const tool = drawTool(canvas as HTMLCanvasElement);
     setCanvas(canvas);
-  });
+  }, [element]);
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
@@ -50,8 +50,7 @@ function App() {
     setElement(prev => {
       const array = [...prev];
       const index = array.length - 1;
-      array[index].startX = updateElements.endX;
-      array[index].startY = updateElements.endY;
+      array[index] = updateElements;
       return [...array];
     });
   };
