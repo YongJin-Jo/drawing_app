@@ -1,4 +1,4 @@
-import { Drawable } from 'roughjs/bin/core';
+import { Drawable } from '../../type/Canvas';
 
 export class DrawingTool {
   canvas: HTMLCanvasElement;
@@ -8,7 +8,8 @@ export class DrawingTool {
     this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
   }
   draw(drawable: Drawable) {
-    const sets = drawable.sets || [];
+    const sets = drawable ? drawable.sets : [];
+
     const ctx = this.ctx;
     for (const drawable of sets) {
       switch (drawable.type) {
@@ -17,7 +18,7 @@ export class DrawingTool {
           this.drawToContext(ctx, drawable);
           ctx.restore();
           break;
-        case 'filePath':
+        case 'fillPath':
           ctx.save();
           ctx.restore();
           break;
@@ -33,6 +34,8 @@ export class DrawingTool {
     ctx.beginPath();
     for (const item of drawable.ops) {
       const data = item.data;
+      console.log(item.op, data);
+
       switch (item.op) {
         case 'moveTo':
           ctx.moveTo(data[0], data[1]);

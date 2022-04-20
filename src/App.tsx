@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useState } from 'react';
-import { PositionTarget } from './type/Canvas';
-import { drawTool } from './util/drawTool';
-
+import { Drawable, PositionTarget } from './type/Canvas';
+import Core from './util/canvars/canvas';
+import { createElement } from './util/utill';
 function App() {
   const [canvas, setCanvas] = useState<HTMLCanvasElement>();
   const [toolType, setToolType] = useState<string>('none');
@@ -9,8 +9,9 @@ function App() {
   const [drawing, setDrawing] = useState(false);
   useLayoutEffect(() => {
     const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
-    const tool = drawTool(canvas as HTMLCanvasElement);
     setCanvas(canvas);
+    const core = Core.drawingTool(canvas);
+    element.forEach(item => core.draw(item?.data as Drawable));
   }, [element]);
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -29,31 +30,23 @@ function App() {
   };
   const handleMouseOut = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
-
     setDrawing(false);
   };
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing) return;
     event.preventDefault();
-    const index = element.length - 1;
-    const { startX, startY } = element[index];
-    const tool = drawTool(canvas as HTMLCanvasElement);
-
-    const updateElements = tool(
-      toolType,
-      startX,
-      startY,
-      event.clientX,
-      event.clientY
-    );
-
+    const { clientX, clientY } = event;
+    const len = element.length - 1;
+    const { startX, startY } = element[len];
+    const updateElement = createElement(startX, startY, clientX, clientY);
     setElement(prev => {
       const array = [...prev];
       const index = array.length - 1;
-      array[index] = updateElements;
+      array[index] = updateElement;
       return [...array];
     });
   };
+
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
     setDrawing(false);
@@ -63,15 +56,7 @@ function App() {
     <>
       <div>
         <input
-          type="checkbox"
-          value={'Brush'}
-          onChange={() => {
-            setToolType('Brush');
-          }}
-        />
-        <label>Brush</label>
-        <input
-          type="checkbox"
+          type="radio"
           value={'Line'}
           onChange={() => {
             setToolType('Line');
@@ -79,7 +64,7 @@ function App() {
         />
         <label>Line</label>
         <input
-          type="checkbox"
+          type="radio"
           value={'Rect'}
           onChange={() => {
             setToolType('Rect');

@@ -1,13 +1,8 @@
+import { OpSet } from '../../type/Canvas';
 import { line } from './render';
-interface SetsDefind {
-  type: string;
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-}
+
 export class Generator {
-  _d(shape: string, sets: SetsDefind[]) {
+  _d(shape: string, sets: OpSet[]) {
     return { shape, sets: sets || [] };
   }
 
