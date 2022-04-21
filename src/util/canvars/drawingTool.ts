@@ -14,9 +14,7 @@ export class DrawingTool {
     for (const drawable of sets) {
       switch (drawable.type) {
         case 'path':
-          ctx.save();
           this.drawToContext(ctx, drawable);
-          ctx.restore();
           break;
         case 'fillPath':
           ctx.save();
@@ -31,19 +29,32 @@ export class DrawingTool {
   }
 
   drawToContext(ctx: CanvasRenderingContext2D, drawable: any) {
+    //console.log(drawable);
+
     ctx.beginPath();
     for (const item of drawable.ops) {
       const data = item.data;
-      console.log(item.op, data);
 
       switch (item.op) {
         case 'moveTo':
           ctx.moveTo(data[0], data[1]);
           break;
-        case 'LineTo':
+        case 'bcurveTo':
+          ctx.bezierCurveTo(
+            data[0],
+            data[1],
+            data[2],
+            data[3],
+            data[4],
+            data[5]
+          );
+          break;
+        case 'lineTo':
           ctx.lineTo(data[0], data[1]);
           break;
       }
     }
+
+    ctx.stroke();
   }
 }

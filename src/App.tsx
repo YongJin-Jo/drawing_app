@@ -12,7 +12,7 @@ function App() {
     setCanvas(canvas);
     const core = Core.drawingTool(canvas);
     element.forEach(item => core.draw(item?.data as Drawable));
-  }, [element]);
+  }, [element, drawing]);
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
