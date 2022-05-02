@@ -38,7 +38,13 @@ function App() {
     const { clientX, clientY } = event;
     const len = element.length - 1;
     const { startX, startY } = element[len];
-    const updateElement = createElement(startX, startY, clientX, clientY);
+    const updateElement = createElement(
+      startX,
+      startY,
+      clientX,
+      clientY,
+      toolType
+    );
     setElement(prev => {
       const array = [...prev];
       const index = array.length - 1;

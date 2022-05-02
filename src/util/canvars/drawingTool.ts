@@ -9,6 +9,7 @@ export class DrawingTool {
   }
   draw(drawable: Drawable) {
     const sets = drawable ? drawable.sets : [];
+    console.log(sets);
 
     const ctx = this.ctx;
     for (const drawable of sets) {

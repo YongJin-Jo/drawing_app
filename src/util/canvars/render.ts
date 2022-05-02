@@ -1,55 +1,36 @@
 import './render';
 
 function line(startX: number, startY: number, endX: number, endY: number): any {
-  return { type: 'path', ops: dubleline(startX, startY, endX, endY) };
+  return { type: 'path', ops: _l(startX, startY, endX, endY) };
 }
 
-function dubleline(startX: number, startY: number, endX: number, endY: number) {
-  const o1 = _l(startX, startY, endX, endY, true, true);
-  return o1;
-}
-
-function _l(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-  move: boolean,
-  overlay: boolean
+function rectangle(
+  startX: number,
+  startY: number,
+  width: number,
+  height: number
 ) {
-  const ops = [];
-  if (move) {
-    if (overlay) {
-      ops.push({
-        op: 'move',
-        data: [x1, y1],
-      });
-    } else {
-      ops.push({
-        op: 'move',
-        data: [x1, y1],
-      });
-    }
-  }
+  return { type: 'path', ops: _r(startX, startY, width, height) };
+}
 
-  if (overlay) {
-    ops.push({
-      op: 'bcurveTo',
-      data: [x1, y1, x1 + 2 * (x2 - x1), y1 + 2 * (y2 - y1), x2, y2],
-    });
-  } else {
-    ops.push({
-      op: 'bcurveTo',
-      data: [
-        x1 + (x2 - x1),
-        y1 + (y2 - y1),
-        x1 + 2 * (x2 - x1),
-        y1 + 2 * (y2 - y1),
-        x2,
-        y2,
-      ],
-    });
+function _l(startX: number, startY: number, endX: number, endY: number) {
+  const ops = [];
+  ops.push({ op: 'moveTo', data: [startX, startY] });
+  ops.push({ op: 'lineTo', data: [endX, endY] });
+  return ops;
+}
+
+function _r(startX: number, startY: number, width: number, height: number) {
+  const points = [
+    [startX, startY],
+    [startX + width, startY],
+    [startX + width, startY + height],
+    [startX, startY + height],
+  ];
+  const ops = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    ops.push(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1]);
   }
   return ops;
 }
-export { line };
+export { line, rectangle };
