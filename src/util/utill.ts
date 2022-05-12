@@ -16,6 +16,7 @@ function createElement(
       break;
     case 'Rect':
       data = gen.rectangle(startX, startY, endY, endY);
+
       break;
   }
   return { startX, startY, endX, endY, data };

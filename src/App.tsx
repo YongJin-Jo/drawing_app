@@ -1,18 +1,17 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Drawable, PositionTarget } from './type/Canvas';
 import Core from './util/canvars/canvas';
 import { createElement } from './util/utill';
 function App() {
-  const [canvas, setCanvas] = useState<HTMLCanvasElement>();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [toolType, setToolType] = useState<string>('none');
   const [element, setElement] = useState<PositionTarget[]>([]);
   const [drawing, setDrawing] = useState(false);
   useLayoutEffect(() => {
-    const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
-    setCanvas(canvas);
+    const canvas = canvasRef.current as HTMLCanvasElement;
     const core = Core.drawingTool(canvas);
     element.forEach(item => core.draw(item?.data as Drawable));
-  }, [element, drawing]);
+  }, [element]);
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
@@ -23,21 +22,26 @@ function App() {
       endX: event.clientX,
       endY: event.clientY,
     };
+    console.log('click', mousePositon);
+
     setElement(prev => {
       return [...prev, mousePositon];
     });
     setDrawing(true);
   };
+
   const handleMouseOut = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
     setDrawing(false);
   };
+
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing) return;
     event.preventDefault();
-    const { clientX, clientY } = event;
     const len = element.length - 1;
     const { startX, startY } = element[len];
+    const { clientX, clientY } = event;
+
     const updateElement = createElement(
       startX,
       startY,
@@ -45,6 +49,7 @@ function App() {
       clientY,
       toolType
     );
+
     setElement(prev => {
       const array = [...prev];
       const index = array.length - 1;
@@ -79,6 +84,7 @@ function App() {
         <label>Rect</label>
       </div>
       <canvas
+        ref={canvasRef}
         id="Canvas"
         width={window.innerWidth}
         height={window.innerHeight}

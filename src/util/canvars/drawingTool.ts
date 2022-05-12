@@ -9,7 +9,6 @@ export class DrawingTool {
   }
   draw(drawable: Drawable) {
     const sets = drawable ? drawable.sets : [];
-    console.log(sets);
 
     const ctx = this.ctx;
     for (const drawable of sets) {
@@ -30,8 +29,6 @@ export class DrawingTool {
   }
 
   drawToContext(ctx: CanvasRenderingContext2D, drawable: any) {
-    //console.log(drawable);
-
     ctx.beginPath();
     for (const item of drawable.ops) {
       const data = item.data;
@@ -53,6 +50,8 @@ export class DrawingTool {
         case 'lineTo':
           ctx.lineTo(data[0], data[1]);
           break;
+        case 'strokeRect':
+          ctx.strokeRect(data[0], data[1], data[2], data[3]);
       }
     }
 
