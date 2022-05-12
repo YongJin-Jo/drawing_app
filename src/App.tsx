@@ -1,43 +1,63 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 
-type ElementsDefain = { clientX: number; clientY: number }[];
+interface ElementsPosition {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+type ElementsDefain = ElementsPosition[];
 
 function App() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>();
   const [elements, setElements] = useState<ElementsDefain>([]);
   const [drawing, setDrawing] = useState(false);
   useLayoutEffect(() => {
-    const canvas = document.getElementById('Canvas') as HTMLCanvasElement;
+    const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     setCtx(ctx);
-
-    ctx?.strokeRect(0, 0, 10, 1);
-  });
+    elements.forEach(data => createLine(canvas, data));
+  }, [elements]);
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     setDrawing(true);
     const { clientX, clientY } = event;
-    //const elemnts = { clientX, clientY };
-    ctx?.beginPath();
-    ctx?.moveTo(clientX, clientY);
-    ctx?.stroke();
+    const updateElement = {
+      x1: clientX,
+      y1: clientY,
+      x2: clientX,
+      y2: clientY,
+    };
 
-    //setElements(prevState => [...prevState, elemnts]);
+    setElements(prevState => [...prevState, updateElement]);
   };
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing) return;
+
+    const len = elements.length - 1;
+    const { x1, y1 } = elements[len];
     const { clientX, clientY } = event;
+    const updateElement = {
+      x1,
+      y1,
+      x2: clientX,
+      y2: clientY,
+    };
+
+    setElements(prevState => {
+      const state = prevState;
+      state[state.length - 1] = updateElement;
+      return [...state];
+    });
   };
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const { clientX, clientY } = event;
-
-    ctx?.lineTo(clientX, clientY);
-    ctx?.stroke();
     setDrawing(false);
   };
 
   return (
     <canvas
+      ref={canvasRef}
       id="Canvas"
       width={window.innerWidth}
       height={window.innerHeight}
@@ -46,6 +66,14 @@ function App() {
       onMouseUp={handleMouseUp}
     ></canvas>
   );
+}
+
+function createLine(canvas: HTMLCanvasElement, data: ElementsPosition) {
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(data.x1, data.y1);
+  ctx.lineTo(data.x2, data.y2);
 }
 
 export default App;
