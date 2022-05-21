@@ -20,21 +20,24 @@ function App() {
   const [selectedElement, setSelectedElement] =
     useState<ElementsPosition | null>(null);
   const [action, setAction] = useState<Action>('none');
+
   useLayoutEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
+    ctx?.clearRect(0, 0, canvas.width, canvas.height);
     const core = canversTarget(canvas);
     setCtx(ctx);
     elements.forEach(data => core(data));
   }, [elements]);
 
-  const updateEleElement = ({ id, x1, y1, x2, y2, type }: ElementsPosition) => {
+  const updateElement = ({ id, x1, y1, x2, y2, type }: ElementsPosition) => {
     const updatedEleElement = createElement({ id, x1, y1, x2, y2, type });
-    console.log(updatedEleElement);
 
     const elementsCopy = [...elements];
     const findindex = elementsCopy.findIndex(item => item.id === id);
-    elements[findindex] = updatedEleElement;
+
+    elementsCopy[findindex] = updatedEleElement;
+
     setElements(elementsCopy);
   };
 
@@ -79,13 +82,12 @@ function App() {
         y2: changeY,
         type: tooltype,
       };
-
-      updateEleElement(createPosition);
+      updateElement(createPosition);
     } else if (action === 'moving') {
       const { id, x1, x2, y1, y2, type } = selectedElement as ElementsPosition;
       const w = x2 - x1;
       const h = y2 - y1;
-      updateEleElement({
+      updateElement({
         id,
         x1: changeX,
         y1: changeY,
