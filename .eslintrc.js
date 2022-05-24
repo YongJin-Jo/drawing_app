@@ -21,8 +21,10 @@ module.exports = {
         printWidth: 80,
         bracketSpacing: true,
         arrowParens: 'avoid',
+        endOfLine: 'auto',
       },
     ],
+    'linebreak-style': 0,
   },
   parserOptions: {
     parser: '@typescript-eslint/parser',
