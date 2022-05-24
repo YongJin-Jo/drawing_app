@@ -5,6 +5,8 @@ export interface ElementsPosition {
   x2: number;
   y2: number;
   type: string;
+  offsetX?: number;
+  offsetY?: number;
 }
 export type ElementsDefain = ElementsPosition[];
 export type Tool = 'selection' | 'line' | 'rect';

@@ -43,17 +43,20 @@ function App() {
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
+    const { changeX, changeY } = pointerPosition(clientX, clientY);
 
     if (tooltype === 'selection') {
       const element = getElementAtPosition(clientX, clientY, elements);
 
       if (element) {
-        setSelectedElement(element);
+        const offsetX = changeX - element.x1;
+        const offsetY = changeY - element.y1;
+
+        setSelectedElement({ ...element, offsetX, offsetY });
         setAction('moving');
       }
     } else {
       setAction('drawing');
-      const { changeX, changeY } = pointerPosition(clientX, clientY);
       const createPosition = {
         id: Date.now().toString(),
         x1: changeX,
@@ -71,7 +74,18 @@ function App() {
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
+    if (tooltype === 'selection') {
+      event.currentTarget.style.cursor = getElementAtPosition(
+        changeX,
+        changeY,
+        elements
+      )
+        ? 'move'
+        : 'default';
+    }
+
     if (action === 'drawing') {
+      event.currentTarget.style.cursor = 'crosshair';
       const len = elements.length - 1;
       const { id, x1, y1 } = elements[len];
       const createPosition = {
@@ -84,20 +98,24 @@ function App() {
       };
       updateElement(createPosition);
     } else if (action === 'moving') {
-      const { id, x1, x2, y1, y2, type } = selectedElement as ElementsPosition;
+      const { id, x1, x2, y1, y2, type, offsetX, offsetY } =
+        selectedElement as ElementsPosition;
       const w = x2 - x1;
       const h = y2 - y1;
+      const newX1 = changeX - (offsetX as number);
+      const newY1 = changeY - (offsetY as number);
+
       updateElement({
         id,
-        x1: changeX,
-        y1: changeY,
-        x2: changeX + w,
-        y2: changeY + h,
+        x1: newX1,
+        y1: newY1,
+        x2: newX1 + w,
+        y2: newY1 + h,
         type,
       });
     }
   };
-  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleMouseUp = () => {
     setAction('none');
     setSelectedElement(null);
   };
