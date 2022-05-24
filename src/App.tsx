@@ -3,8 +3,10 @@ import {
   Action,
   ElementsDefain,
   ElementsPosition,
+  SelectPosition,
   Tool,
 } from './type/canvasDefine';
+import { cursorForPosition } from './util/canvars/cursorStyle';
 import {
   canversTarget,
   createElement,
@@ -17,8 +19,9 @@ function App() {
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>();
   const [tooltype, setTooltype] = useState<Tool>('line');
   const [elements, setElements] = useState<ElementsDefain>([]);
-  const [selectedElement, setSelectedElement] =
-    useState<ElementsPosition | null>(null);
+  const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
+    null
+  );
   const [action, setAction] = useState<Action>('none');
 
   useLayoutEffect(() => {
@@ -47,13 +50,17 @@ function App() {
 
     if (tooltype === 'selection') {
       const element = getElementAtPosition(clientX, clientY, elements);
+      console.log(element);
 
       if (element) {
         const offsetX = changeX - element.x1;
         const offsetY = changeY - element.y1;
-
         setSelectedElement({ ...element, offsetX, offsetY });
-        setAction('moving');
+        if (element.position === 'inside') {
+          setAction('moving');
+        } else {
+          setAction('resize');
+        }
       }
     } else {
       setAction('drawing');
@@ -75,17 +82,13 @@ function App() {
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
     if (tooltype === 'selection') {
-      event.currentTarget.style.cursor = getElementAtPosition(
-        changeX,
-        changeY,
-        elements
-      )
-        ? 'move'
+      const element = getElementAtPosition(changeX, changeY, elements);
+      event.currentTarget.style.cursor = element
+        ? cursorForPosition(element.position)
         : 'default';
     }
 
     if (action === 'drawing') {
-      event.currentTarget.style.cursor = 'crosshair';
       const len = elements.length - 1;
       const { id, x1, y1 } = elements[len];
       const createPosition = {
@@ -99,7 +102,7 @@ function App() {
       updateElement(createPosition);
     } else if (action === 'moving') {
       const { id, x1, x2, y1, y2, type, offsetX, offsetY } =
-        selectedElement as ElementsPosition;
+        selectedElement as SelectPosition;
       const w = x2 - x1;
       const h = y2 - y1;
       const newX1 = changeX - (offsetX as number);
@@ -116,6 +119,12 @@ function App() {
     }
   };
   const handleMouseUp = () => {
+    if (action === 'drawing') {
+      const index = elements.length - 1;
+      const { id, type } = elements[index];
+      const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
+      updateElement({ id, x1, y1, x2, y2, type });
+    }
     setAction('none');
     setSelectedElement(null);
   };
@@ -163,3 +172,20 @@ function App() {
 }
 
 export default App;
+
+function adjustElementCoordinates(element: ElementsPosition) {
+  const { type, x1, y1, x2, y2 } = element;
+  if (type === 'rectangle') {
+    const minX = Math.min(x1, x2);
+    const maxX = Math.max(x1, x2);
+    const minY = Math.min(y1, y2);
+    const maxY = Math.max(y1, y2);
+    return { x1: minX, y1: minY, x2: maxX, y2: maxY };
+  } else {
+    if (x1 < x2 || (x1 === x2 && y1 < y2)) {
+      return { x1, y1, x2, y2 };
+    } else {
+      return { x1: x2, y1: y2, x2: x1, y2: y1 };
+    }
+  }
+}

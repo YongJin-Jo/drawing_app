@@ -5,9 +5,13 @@ export interface ElementsPosition {
   x2: number;
   y2: number;
   type: string;
-  offsetX?: number;
-  offsetY?: number;
 }
+
+export interface SelectPosition extends ElementsPosition {
+  offsetX: number;
+  offsetY: number;
+}
+
 export type ElementsDefain = ElementsPosition[];
 export type Tool = 'selection' | 'line' | 'rect';
-export type Action = 'none' | 'drawing' | 'moving';
+export type Action = 'none' | 'drawing' | 'moving' | 'resize';

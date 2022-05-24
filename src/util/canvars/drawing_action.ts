@@ -1,5 +1,5 @@
 import { ElementsDefain, ElementsPosition } from '../../type/canvasDefine';
-import { isWithinElement } from './math';
+import { positionWithinElement } from './math';
 
 function pointerPosition(x1: number, y1: number) {
   const changeX = x1 - 8;
@@ -51,7 +51,12 @@ function createBurush(ctx: CanvasRenderingContext2D, data: ElementsPosition) {
 
 // 좌표 수정
 function getElementAtPosition(x: number, y: number, elements: ElementsDefain) {
-  return elements.find(element => isWithinElement(x, y, element));
+  return elements
+    .map(element => ({
+      ...element,
+      position: positionWithinElement(x, y, element),
+    }))
+    .find(element => element.position !== null);
 }
 
 export {
