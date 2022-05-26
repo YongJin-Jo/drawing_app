@@ -5,6 +5,7 @@ export interface ElementsPosition {
   x2: number;
   y2: number;
   type: string;
+  position: string | null;
 }
 
 export interface SelectPosition extends ElementsPosition {

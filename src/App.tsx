@@ -32,13 +32,37 @@ function App() {
     elements.forEach(data => core(data));
   }, [elements]);
 
-  const updateElement = ({ id, x1, y1, x2, y2, type }: ElementsPosition) => {
-    const updatedEleElement = createElement({ id, x1, y1, x2, y2, type });
-
+  const updateElement = ({
+    id,
+    x1,
+    y1,
+    x2,
+    y2,
+    type,
+    position,
+  }: ElementsPosition) => {
+    const updatedEleElement = createElement({
+      id,
+      x1,
+      y1,
+      x2,
+      y2,
+      type,
+      position,
+    });
+    const adjustElement = adjustElementCoordinates(updatedEleElement);
     const elementsCopy = [...elements];
     const findindex = elementsCopy.findIndex(item => item.id === id);
 
-    elementsCopy[findindex] = updatedEleElement;
+    elementsCopy[findindex] = {
+      id,
+      type,
+      x1: adjustElement.x1,
+      y1: adjustElement.y1,
+      x2: adjustElement.x2,
+      y2: adjustElement.y2,
+      position,
+    };
 
     setElements(elementsCopy);
   };
@@ -46,14 +70,20 @@ function App() {
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
+    console.log(changeX, changeY);
 
     if (tooltype === 'selection') {
       const element = getElementAtPosition(changeX, changeY, elements);
+      console.log(element);
 
       if (element) {
         const offsetX = changeX - element.x1;
         const offsetY = changeY - element.y1;
-        setSelectedElement({ ...element, offsetX, offsetY });
+        setSelectedElement({
+          ...element,
+          offsetX,
+          offsetY,
+        });
         if (element.position === 'inside') {
           setAction('moving');
         } else {
@@ -69,6 +99,7 @@ function App() {
         x2: changeX,
         y2: changeY,
         type: tooltype,
+        position: null,
       };
 
       const updateElement = createElement(createPosition);
@@ -88,7 +119,7 @@ function App() {
 
     if (action === 'drawing') {
       const len = elements.length - 1;
-      const { id, x1, y1 } = elements[len];
+      const { id, x1, y1, position } = elements[len];
       const createPosition = {
         id,
         x1,
@@ -96,10 +127,11 @@ function App() {
         x2: changeX,
         y2: changeY,
         type: tooltype,
+        position,
       };
       updateElement(createPosition);
     } else if (action === 'moving') {
-      const { id, x1, x2, y1, y2, type, offsetX, offsetY } =
+      const { id, x1, x2, y1, y2, type, offsetX, offsetY, position } =
         selectedElement as SelectPosition;
       const w = x2 - x1;
       const h = y2 - y1;
@@ -113,15 +145,35 @@ function App() {
         x2: newX1 + w,
         y2: newY1 + h,
         type,
+        position,
+      });
+    } else if (action === 'resize') {
+      const { id, type, position, ...coordinates } =
+        selectedElement as SelectPosition;
+      const { x1, y1, x2, y2 } = resizingCoordinates(
+        changeX,
+        changeY,
+        position as string,
+        coordinates
+      );
+      updateElement({
+        id,
+        x1,
+        y1,
+        x2,
+        y2,
+        type,
+        position,
       });
     }
   };
   const handleMouseUp = () => {
     if (action === 'drawing') {
       const index = elements.length - 1;
-      const { id, type } = elements[index];
+      const { id, type, position } = elements[index];
       const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
-      updateElement({ id, x1, y1, x2, y2, type });
+
+      updateElement({ id, x1, y1, x2, y2, type, position });
     }
     setAction('none');
     setSelectedElement(null);
@@ -170,3 +222,30 @@ function App() {
 }
 
 export default App;
+function resizingCoordinates(
+  changeX: number,
+  changeY: number,
+  position: string,
+  coordinates: {
+    offsetX: number;
+    offsetY: number;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  }
+) {
+  const { x1, y1, x2, y2 } = coordinates;
+  switch (position) {
+    case 'tl':
+    case 'start':
+      return { x1: changeX, y1: changeY, x2, y2 };
+    case 'bl':
+      return { x1: changeX, y1, x2, y2: changeY };
+    case 'br':
+    case 'end':
+      return { x1, y1, x2: changeX, y2: changeY };
+    default:
+      return { x1, y1: changeY, x2: changeX, y2 };
+  }
+}

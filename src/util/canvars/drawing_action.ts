@@ -7,8 +7,16 @@ function pointerPosition(x1: number, y1: number) {
   return { changeX, changeY };
 }
 
-function createElement({ id, x1, y1, x2, y2, type }: ElementsPosition) {
-  return { id, x1, y1, x2, y2, type };
+function createElement({
+  id,
+  x1,
+  y1,
+  x2,
+  y2,
+  type,
+  position,
+}: ElementsPosition) {
+  return { id, x1, y1, x2, y2, type, position };
 }
 
 function canversTarget(canvas: HTMLCanvasElement) {
@@ -51,12 +59,14 @@ function createBurush(ctx: CanvasRenderingContext2D, data: ElementsPosition) {
 
 // 좌표 수정
 function getElementAtPosition(x: number, y: number, elements: ElementsDefain) {
-  return elements
+  const findElements = elements
     .map(element => ({
       ...element,
       position: positionWithinElement(x, y, element),
     }))
-    .find(element => element.position !== null);
+    .find(element => element.position !== null) as ElementsPosition;
+
+  return findElements;
 }
 
 export {
