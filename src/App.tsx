@@ -13,10 +13,10 @@ import {
   getElementAtPosition,
   pointerPosition,
 } from './util/canvars/drawing_action';
+import { adjustElementCoordinates } from './util/canvars/math';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>();
   const [tooltype, setTooltype] = useState<Tool>('line');
   const [elements, setElements] = useState<ElementsDefain>([]);
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
@@ -29,7 +29,6 @@ function App() {
     const ctx = canvas.getContext('2d');
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     const core = canversTarget(canvas);
-    setCtx(ctx);
     elements.forEach(data => core(data));
   }, [elements]);
 
@@ -49,8 +48,7 @@ function App() {
     const { changeX, changeY } = pointerPosition(clientX, clientY);
 
     if (tooltype === 'selection') {
-      const element = getElementAtPosition(clientX, clientY, elements);
-      console.log(element);
+      const element = getElementAtPosition(changeX, changeY, elements);
 
       if (element) {
         const offsetX = changeX - element.x1;
@@ -172,20 +170,3 @@ function App() {
 }
 
 export default App;
-
-function adjustElementCoordinates(element: ElementsPosition) {
-  const { type, x1, y1, x2, y2 } = element;
-  if (type === 'rectangle') {
-    const minX = Math.min(x1, x2);
-    const maxX = Math.max(x1, x2);
-    const minY = Math.min(y1, y2);
-    const maxY = Math.max(y1, y2);
-    return { x1: minX, y1: minY, x2: maxX, y2: maxY };
-  } else {
-    if (x1 < x2 || (x1 === x2 && y1 < y2)) {
-      return { x1, y1, x2, y2 };
-    } else {
-      return { x1: x2, y1: y2, x2: x1, y2: y1 };
-    }
-  }
-}

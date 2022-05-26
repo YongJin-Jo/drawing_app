@@ -1,6 +1,6 @@
 import { ElementsPosition } from '../../type/canvasDefine';
 
-export { positionWithinElement };
+export { positionWithinElement, adjustElementCoordinates };
 
 function positionWithinElement(
   x: number,
@@ -14,9 +14,9 @@ function positionWithinElement(
     const topRight = nearPoint(x, y, x2, y1, 'tr');
     const bottomLeft = nearPoint(x, y, x1, y2, 'bl');
     const bottomRight = nearPoint(x, y, x2, y2, 'br');
-
     const inside = x > x1 && x < x2 && y > y1 && y < y2 ? 'inside' : null;
-    return inside || topLeft || topRight || bottomLeft || bottomRight;
+
+    return topLeft || topRight || bottomLeft || bottomRight || inside;
   } else {
     const a = { x: x1, y: y1 };
     const b = { x: x2, y: y2 };
@@ -25,7 +25,25 @@ function positionWithinElement(
     const start = nearPoint(x, y, x1, y1, 'start');
     const end = nearPoint(x, y, x2, y2, 'end');
     const inside = Math.abs(offset) < 1 ? 'inside' : null;
+
     return inside || start || end;
+  }
+}
+
+function adjustElementCoordinates(element: ElementsPosition) {
+  const { type, x1, y1, x2, y2 } = element;
+  if (type === 'rectangle') {
+    const minX = Math.min(x1, x2);
+    const maxX = Math.max(x1, x2);
+    const minY = Math.min(y1, y2);
+    const maxY = Math.max(y1, y2);
+    return { x1: minX, y1: minY, x2: maxX, y2: maxY };
+  } else {
+    if (x1 < x2 || (x1 === x2 && y1 < y2)) {
+      return { x1, y1, x2, y2 };
+    } else {
+      return { x1: x2, y1: y2, x2: x1, y2: y1 };
+    }
   }
 }
 
