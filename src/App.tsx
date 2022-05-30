@@ -61,7 +61,7 @@ function App() {
       y1: adjustElement.y1,
       x2: adjustElement.x2,
       y2: adjustElement.y2,
-      position,
+      position: null,
     };
 
     setElements(elementsCopy);
@@ -70,11 +70,9 @@ function App() {
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
-    console.log(changeX, changeY);
 
     if (tooltype === 'selection') {
       const element = getElementAtPosition(changeX, changeY, elements);
-      console.log(element);
 
       if (element) {
         const offsetX = changeX - element.x1;
