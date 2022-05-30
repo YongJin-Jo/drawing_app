@@ -166,11 +166,10 @@ function App() {
     }
   };
   const handleMouseUp = () => {
-    if (action === 'drawing') {
+    if (action === 'drawing' || action === 'resize') {
       const index = elements.length - 1;
       const { id, type, position } = elements[index];
       const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
-
       updateElement({ id, x1, y1, x2, y2, type, position });
     }
     setAction('none');
