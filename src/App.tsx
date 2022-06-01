@@ -15,10 +15,23 @@ import {
 } from './util/canvars/drawing_action';
 import { adjustElementCoordinates } from './util/canvars/math';
 
+const useHistory = () => {
+  const [index, setIndex] = useState(0);
+  const [history, setHistory] = useState<ElementsDefain[]>([]);
+
+  const setState = (state: ElementsPosition) => {
+    const newState = [...history[index], state];
+    setHistory(prevState => [...prevState, newState]);
+    setIndex(prevIndex => prevIndex + 1);
+  };
+  return [history[index], setState];
+};
+
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltype, setTooltype] = useState<Tool>('line');
   const [elements, setElements] = useState<ElementsDefain>([]);
+  const [history, setHistory] = useState<ElementsDefain[]>([]);
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
@@ -174,6 +187,7 @@ function App() {
     }
     setAction('none');
     setSelectedElement(null);
+    setHistory(prev => [...prev, elements]);
   };
 
   return (
