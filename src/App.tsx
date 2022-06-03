@@ -1,10 +1,12 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
+import { useHistory } from './hooks/hook';
 import {
   Action,
   ElementsDefain,
   ElementsPosition,
   SelectPosition,
   Tool,
+  setState,
 } from './type/canvasDefine';
 import { cursorForPosition } from './util/canvars/cursorStyle';
 import {
@@ -15,26 +17,14 @@ import {
 } from './util/canvars/drawing_action';
 import { adjustElementCoordinates } from './util/canvars/math';
 
-const useHistory = () => {
-  const [index, setIndex] = useState(0);
-  const [history, setHistory] = useState<ElementsDefain[]>([]);
-
-  const setState = (state: ElementsPosition) => {
-    const newState = [...history[index], state];
-    setHistory(prevState => [...prevState, newState]);
-    setIndex(prevIndex => prevIndex + 1);
-  };
-  return [history[index], setState];
-};
-
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltype, setTooltype] = useState<Tool>('line');
-  const [elements, setElements] = useState<ElementsDefain>([]);
-  const [history, setHistory] = useState<ElementsDefain[]>([]);
+  //const [elements, setElements] = useState<ElementsDefain>([]);
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
+  const [elements, setElements] = useHistory([]);
   const [action, setAction] = useState<Action>('none');
 
   useLayoutEffect(() => {
@@ -42,6 +32,8 @@ function App() {
     const ctx = canvas.getContext('2d');
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     const core = canversTarget(canvas);
+    console.log(elements);
+
     elements.forEach(data => core(data));
   }, [elements]);
 
@@ -77,7 +69,7 @@ function App() {
       position: null,
     };
 
-    setElements(elementsCopy);
+    setElements(elementsCopy, true);
   };
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -103,7 +95,7 @@ function App() {
       }
     } else {
       setAction('drawing');
-      const createPosition = {
+      const createPosition: ElementsPosition = {
         id: Date.now().toString(),
         x1: changeX,
         y1: changeY,
@@ -114,7 +106,7 @@ function App() {
       };
 
       const updateElement = createElement(createPosition);
-      setElements(prevState => [...prevState, updateElement]);
+      setElements((prevState: ElementsDefain) => [...prevState, updateElement]);
     }
   };
 
@@ -187,7 +179,6 @@ function App() {
     }
     setAction('none');
     setSelectedElement(null);
-    setHistory(prev => [...prev, elements]);
   };
 
   return (

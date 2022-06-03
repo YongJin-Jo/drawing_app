@@ -16,3 +16,7 @@ export interface SelectPosition extends ElementsPosition {
 export type ElementsDefain = ElementsPosition[];
 export type Tool = 'selection' | 'line' | 'rect';
 export type Action = 'none' | 'drawing' | 'moving' | 'resize';
+export type setState = (
+  state: ElementsDefain | ((prevState: ElementsDefain) => ElementsDefain),
+  overwirte?: boolean
+) => void;
