@@ -1,4 +1,10 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, {
+  KeyboardEvent,
+  KeyboardEventHandler,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useHistory } from './hooks/hook';
 import {
   Action,
@@ -24,7 +30,7 @@ function App() {
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
-  const [elements, setElements] = useHistory([]);
+  const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState<Action>('none');
 
   useLayoutEffect(() => {
@@ -32,11 +38,24 @@ function App() {
     const ctx = canvas.getContext('2d');
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     const core = canversTarget(canvas);
-    console.log(elements);
-
     elements.forEach(data => core(data));
   }, [elements]);
+  useLayoutEffect(() => {
+    const undoRedoFunction = (event: any) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    };
+    document.addEventListener('keydown', undoRedoFunction);
 
+    return () => {
+      document.removeEventListener('keydown', undoRedoFunction);
+    };
+  }, [undo, redo]);
   const updateElement = ({
     id,
     x1,
@@ -87,6 +106,8 @@ function App() {
           offsetX,
           offsetY,
         });
+        setElements(prevState => prevState);
+
         if (element.position === 'inside') {
           setAction('moving');
         } else {
@@ -208,6 +229,10 @@ function App() {
           }}
         />
         <label htmlFor="rect">Rect</label>
+        <div>
+          <button onClick={undo}>Undo</button>
+          <button onClick={redo}>Redo</button>
+        </div>
       </div>
 
       <canvas

@@ -20,3 +20,4 @@ export type setState = (
   state: ElementsDefain | ((prevState: ElementsDefain) => ElementsDefain),
   overwirte?: boolean
 ) => void;
+export type Void = () => void;

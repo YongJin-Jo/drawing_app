@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { ElementsDefain, setState } from '../type/canvasDefine';
+import { ElementsDefain, setState, Void } from '../type/canvasDefine';
 
-export const useHistory = (initalValue: []): [ElementsDefain, setState] => {
+export const useHistory = (
+  initalValue: []
+): [ElementsDefain, setState, Void, Void] => {
   const [index, setIndex] = useState(0);
   const [history, setHistory] = useState<ElementsDefain[]>([initalValue]);
   const setState = (
@@ -15,9 +17,15 @@ export const useHistory = (initalValue: []): [ElementsDefain, setState] => {
       historyCopy[index] = newState;
       setHistory(historyCopy);
     } else {
-      setHistory(prevState => [...prevState, newState]);
+      const updatedState = [...history].slice(0, index + 1);
+      setHistory([...updatedState, newState]);
       setIndex(prevIndex => prevIndex + 1);
     }
   };
-  return [history[index], setState];
+
+  const undo = () => index > 0 && setIndex(prevState => prevState - 1);
+  const redo = () =>
+    index < history.length - 1 && setIndex(prevState => prevState + 1);
+
+  return [history[index], setState, undo, redo];
 };
