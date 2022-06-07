@@ -129,7 +129,6 @@ function App() {
     const { changeX, changeY } = pointerPosition(clientX, clientY);
     if (tooltype === 'selection') {
       const element = getElementAtPosition(changeX, changeY, elements);
-      console.log(element.position);
 
       event.currentTarget.style.cursor = element
         ? cursorForPosition(element.position)
@@ -175,6 +174,7 @@ function App() {
         position as string,
         coordinates
       );
+
       updateElement({
         id,
         x1,
@@ -199,31 +199,33 @@ function App() {
 
   return (
     <>
-      <div>
-        <input
-          type="radio"
-          checked={tooltype === 'selection'}
-          onChange={() => {
-            setTooltype('selection');
-          }}
-        />
-        <label htmlFor="Selection">Selection</label>
-        <input
-          type="radio"
-          checked={tooltype === 'line'}
-          onChange={() => {
-            setTooltype('line');
-          }}
-        />
-        <label htmlFor="Line">Line</label>
-        <input
-          type="radio"
-          checked={tooltype === 'rect'}
-          onChange={() => {
-            setTooltype('rect');
-          }}
-        />
-        <label htmlFor="rect">Rect</label>
+      <div style={{ display: 'flex' }}>
+        <div>
+          <input
+            type="radio"
+            checked={tooltype === 'selection'}
+            onChange={() => {
+              setTooltype('selection');
+            }}
+          />
+          <label htmlFor="Selection">Selection</label>
+          <input
+            type="radio"
+            checked={tooltype === 'line'}
+            onChange={() => {
+              setTooltype('line');
+            }}
+          />
+          <label htmlFor="Line">Line</label>
+          <input
+            type="radio"
+            checked={tooltype === 'rect'}
+            onChange={() => {
+              setTooltype('rect');
+            }}
+          />
+          <label htmlFor="rect">Rect</label>
+        </div>
         <div>
           <button onClick={undo}>Undo</button>
           <button onClick={redo}>Redo</button>

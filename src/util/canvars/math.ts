@@ -32,6 +32,7 @@ function positionWithinElement(
 
 function adjustElementCoordinates(element: ElementsPosition) {
   const { type, x1, y1, x2, y2 } = element;
+
   if (type === 'rect') {
     const minX = Math.min(x1, x2);
     const maxX = Math.max(x1, x2);
@@ -43,7 +44,7 @@ function adjustElementCoordinates(element: ElementsPosition) {
     if (x1 < x2 || (x1 === x2 && y1 < y2)) {
       return { x1, y1, x2, y2 };
     } else {
-      return { x1: x2, y1: y2, x2: x1, y2: y1 };
+      return { x1, y1, x2, y2 };
     }
   }
 }
