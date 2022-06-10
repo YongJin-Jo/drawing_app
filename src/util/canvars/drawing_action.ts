@@ -16,7 +16,15 @@ function createElement({
   type,
   position,
 }: ElementsPosition) {
-  return { id, x1, y1, x2, y2, type, position };
+  switch (type) {
+    case 'line':
+    case 'rect':
+      return { id, x1, y1, x2, y2, type, position };
+    case 'pencil':
+      return { id, x1, y1, x2, y2, type, position, points: [{ x: x1, y: y1 }] };
+    default:
+      throw new Error(`Type not found ${type}`);
+  }
 }
 
 function canversTarget(canvas: HTMLCanvasElement) {
@@ -24,11 +32,13 @@ function canversTarget(canvas: HTMLCanvasElement) {
   return function (data: ElementsPosition) {
     switch (data.type) {
       case 'line':
-        createLine(ctx, data);
-        break;
+        return createLine(ctx, data);
       case 'rect':
-        createRect(ctx, data);
-        break;
+        return createRect(ctx, data);
+      case 'pencil':
+        return data;
+      default:
+        throw new Error(`Type not found ${data.type}`);
     }
   };
 }
