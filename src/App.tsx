@@ -19,8 +19,7 @@ import { adjustElementCoordinates } from './util/canvars/math';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [tooltype, setTooltype] = useState<Tool>('line');
-  //const [elements, setElements] = useState<ElementsDefain>([]);
+  const [tooltype, setTooltype] = useState<Tool>('penclil');
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
@@ -34,6 +33,7 @@ function App() {
     const core = canversTarget(canvas);
     elements.forEach(data => core(data));
   }, [elements]);
+
   useLayoutEffect(() => {
     const undoRedoFunction = (event: any) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
@@ -59,29 +59,43 @@ function App() {
     type,
     position,
   }: ElementsPosition) => {
-    const updatedEleElement = createElement({
-      id,
-      x1,
-      y1,
-      x2,
-      y2,
-      type,
-      position,
-    });
-    const adjustElement = adjustElementCoordinates(updatedEleElement);
     const elementsCopy = [...elements];
     const findindex = elementsCopy.findIndex(item => item.id === id);
 
-    elementsCopy[findindex] = {
-      id,
-      type,
-      x1: adjustElement.x1,
-      y1: adjustElement.y1,
-      x2: adjustElement.x2,
-      y2: adjustElement.y2,
-      position: null,
-    };
+    switch (type) {
+      case 'line':
+      case 'rect': {
+        const updatedEleElement = createElement({
+          id,
+          x1,
+          y1,
+          x2,
+          y2,
+          type,
+          position,
+        });
+        const adjustElement = adjustElementCoordinates(updatedEleElement);
 
+        elementsCopy[findindex] = {
+          id,
+          type,
+          x1: adjustElement.x1,
+          y1: adjustElement.y1,
+          x2: adjustElement.x2,
+          y2: adjustElement.y2,
+          position: null,
+        };
+        break;
+      }
+      case 'pencil':
+        elementsCopy[findindex].points = [
+          ...(elementsCopy[findindex].points as []),
+          { x: x2, y: y2 },
+        ];
+        break;
+      default:
+        throw new Error('not fount type');
+    }
     setElements(elementsCopy, true);
   };
 
@@ -225,6 +239,14 @@ function App() {
             }}
           />
           <label htmlFor="rect">Rect</label>
+          <input
+            type="radio"
+            checked={tooltype === 'penclil'}
+            onChange={() => {
+              setTooltype('penclil');
+            }}
+          />
+          <label htmlFor="Pencil">Pencil</label>
         </div>
         <div>
           <button onClick={undo}>Undo</button>
