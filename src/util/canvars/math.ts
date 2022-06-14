@@ -7,8 +7,9 @@ function positionWithinElement(
   y: number,
   element: ElementsPosition
 ): unknown {
-  const { type, x1, x2, y1, y2 } = element;
-
+  const { type, points } = element;
+  const index = points.length - 1;
+  const { x1, y1, x2, y2 } = points[index];
   if (type === 'rect') {
     const topLeft = nearPoint(x, y, x1, y1, 'tl');
     const topRight = nearPoint(x, y, x2, y1, 'tr');
@@ -31,7 +32,9 @@ function positionWithinElement(
 }
 
 function adjustElementCoordinates(element: ElementsPosition) {
-  const { type, x1, y1, x2, y2 } = element;
+  const { type, points } = element;
+  const index = points.length - 1;
+  const { x1, y1, x2, y2 } = points[index];
 
   if (type === 'rect') {
     const minX = Math.min(x1, x2);

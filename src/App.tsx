@@ -53,12 +53,9 @@ function App() {
 
   const updateElement = ({
     id,
-    x1,
-    y1,
-    x2,
-    y2,
     type,
     position,
+    points: [{ x1, y1, x2, y2 }],
   }: ElementsPosition) => {
     const elementsCopy = [...elements];
     const findindex = elementsCopy.findIndex(item => item.id === id);
@@ -68,23 +65,24 @@ function App() {
       case 'rect': {
         const updatedEleElement = createElement({
           id,
-          x1,
-          y1,
-          x2,
-          y2,
           type,
           position,
+          points: [{ x1, y1, x2, y2 }],
         });
         const adjustElement = adjustElementCoordinates(updatedEleElement);
 
         elementsCopy[findindex] = {
           id,
           type,
-          x1: adjustElement.x1,
-          y1: adjustElement.y1,
-          x2: adjustElement.x2,
-          y2: adjustElement.y2,
           position: null,
+          points: [
+            {
+              x1: adjustElement.x1,
+              y1: adjustElement.y1,
+              x2: adjustElement.x2,
+              y2: adjustElement.y2,
+            },
+          ],
         };
         break;
       }
@@ -107,8 +105,8 @@ function App() {
     if (tooltype === 'selection') {
       const element = getElementAtPosition(changeX, changeY, elements);
       if (element) {
-        const offsetX = changeX - element.x1;
-        const offsetY = changeY - element.y1;
+        const offsetX = changeX - element.points[0].x1;
+        const offsetY = changeY - element.points[0].y1;
         setSelectedElement({
           ...element,
           offsetX,
@@ -126,12 +124,9 @@ function App() {
       setAction('drawing');
       const createPosition: ElementsPosition = {
         id: Date.now().toString(),
-        x1: changeX,
-        y1: changeY,
-        x2: changeX,
-        y2: changeY,
         type: tooltype,
         position: null,
+        points: [{ x1: changeX, y1: changeY, x2: changeX, y2: changeY }],
       };
 
       const updateElement = createElement(createPosition);
@@ -152,33 +147,46 @@ function App() {
 
     if (action === 'drawing') {
       const len = elements.length - 1;
-      const { id, x1, y1, position } = elements[len];
-      const createPosition = {
-        id,
-        x1,
-        y1,
+      const { id, position, points } = elements[len];
+      const pointIndex = points.length - 1;
+
+      points[pointIndex] = {
+        x1: points[pointIndex].x1,
+        y1: points[pointIndex].y1,
         x2: changeX,
         y2: changeY,
+      };
+
+      const createPosition = {
+        id,
         type: tooltype,
         position,
+        points,
       };
+
       updateElement(createPosition);
     } else if (action === 'moving') {
-      const { id, x1, x2, y1, y2, type, offsetX, offsetY, position } =
+      const { id, type, offsetX, offsetY, position, points } =
         selectedElement as SelectPosition;
-      const w = x2 - x1;
-      const h = y2 - y1;
+      const Index = points.length - 1;
+      const prevPoints = points[Index];
+      const w = prevPoints.x2 - prevPoints.x1;
+      const h = prevPoints.y2 - prevPoints.y1;
       const newX1 = changeX - (offsetX as number);
       const newY1 = changeY - (offsetY as number);
 
-      updateElement({
-        id,
+      points[Index] = {
         x1: newX1,
         y1: newY1,
         x2: newX1 + w,
         y2: newY1 + h,
+      };
+
+      updateElement({
+        id,
         type,
         position,
+        points,
       });
     } else if (action === 'resize') {
       const { id, type, position, ...coordinates } =
@@ -192,12 +200,9 @@ function App() {
 
       updateElement({
         id,
-        x1,
-        y1,
-        x2,
-        y2,
         type,
         position,
+        points: [{ x1, y1, x2, y2 }],
       });
     }
   };
@@ -206,7 +211,7 @@ function App() {
       const index = elements.length - 1;
       const { id, type, position } = elements[index];
       const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
-      updateElement({ id, x1, y1, x2, y2, type, position });
+      updateElement({ id, type, position, points: [{ x1, y1, x2, y2 }] });
     }
     setAction('none');
     setSelectedElement(null);
@@ -276,13 +281,11 @@ function resizingCoordinates(
   coordinates: {
     offsetX: number;
     offsetY: number;
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
+    points: { x1: number; y1: number; x2: number; y2: number }[];
   }
 ) {
-  const { x1, y1, x2, y2 } = coordinates;
+  const index = coordinates.points.length - 1;
+  const { x1, y1, x2, y2 } = coordinates.points[index];
   switch (position) {
     case 'tl':
     case 'start':

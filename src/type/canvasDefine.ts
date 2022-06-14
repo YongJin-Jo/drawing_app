@@ -1,13 +1,11 @@
 export interface ElementsPosition {
   id: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
   type: Tool;
   position: string | null;
-  points?: { x1: number; y1: number; x2: number; y2: number }[];
+  points: ElementPoint;
 }
+
+export type ElementPoint = { x1: number; y1: number; x2: number; y2: number }[];
 
 export interface SelectPosition extends ElementsPosition {
   offsetX: number;
