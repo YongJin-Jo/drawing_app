@@ -21,7 +21,16 @@ function createElement({
     case 'rect':
       return { id, x1, y1, x2, y2, type, position };
     case 'pencil':
-      return { id, x1, y1, x2, y2, type, position, points: [{ x: x1, y: y1 }] };
+      return {
+        id,
+        x1,
+        y1,
+        x2,
+        y2,
+        type,
+        position,
+        points: [{ x1, y1, x2, y2 }],
+      };
     default:
       throw new Error(`Type not found ${type}`);
   }
@@ -36,7 +45,7 @@ function canversTarget(canvas: HTMLCanvasElement) {
       case 'rect':
         return createRect(ctx, data);
       case 'pencil':
-        return data;
+        return createBurush(ctx, data.points as ElementPoint);
       default:
         throw new Error(`Type not found ${data.type}`);
     }
@@ -63,7 +72,8 @@ function createRect(ctx: CanvasRenderingContext2D, data: ElementsPosition) {
 }
 
 // 브러쉬
-function createBurush(ctx: CanvasRenderingContext2D, data: ElementsPosition) {
+type ElementPoint = Pick<ElementsPosition, 'points'>;
+function createBurush(ctx: CanvasRenderingContext2D, data: ElementPoint) {
   return;
 }
 

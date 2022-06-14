@@ -19,7 +19,7 @@ import { adjustElementCoordinates } from './util/canvars/math';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [tooltype, setTooltype] = useState<Tool>('penclil');
+  const [tooltype, setTooltype] = useState<Tool>('pencil');
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
@@ -50,6 +50,7 @@ function App() {
       document.removeEventListener('keydown', undoRedoFunction);
     };
   }, [undo, redo]);
+
   const updateElement = ({
     id,
     x1,
@@ -90,7 +91,7 @@ function App() {
       case 'pencil':
         elementsCopy[findindex].points = [
           ...(elementsCopy[findindex].points as []),
-          { x: x2, y: y2 },
+          { x1, y1, x2, y2 },
         ];
         break;
       default:
@@ -241,9 +242,9 @@ function App() {
           <label htmlFor="rect">Rect</label>
           <input
             type="radio"
-            checked={tooltype === 'penclil'}
+            checked={tooltype === 'pencil'}
             onChange={() => {
-              setTooltype('penclil');
+              setTooltype('pencil');
             }}
           />
           <label htmlFor="Pencil">Pencil</label>

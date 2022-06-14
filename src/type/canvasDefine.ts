@@ -4,9 +4,9 @@ export interface ElementsPosition {
   y1: number;
   x2: number;
   y2: number;
-  type: string;
+  type: Tool;
   position: string | null;
-  points?: { x: number; y: number }[];
+  points?: { x1: number; y1: number; x2: number; y2: number }[];
 }
 
 export interface SelectPosition extends ElementsPosition {
@@ -15,7 +15,7 @@ export interface SelectPosition extends ElementsPosition {
 }
 
 export type ElementsDefain = ElementsPosition[];
-export type Tool = 'selection' | 'line' | 'rect' | 'penclil';
+export type Tool = 'selection' | 'line' | 'rect' | 'pencil';
 export type Action = 'none' | 'drawing' | 'moving' | 'resize';
 export type setState = (
   state: ElementsDefain | ((prevState: ElementsDefain) => ElementsDefain),
