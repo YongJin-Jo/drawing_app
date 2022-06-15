@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { ElementsDefain, setState, Void } from '../type/canvasDefine';
+import { ElementsList, setState, Void } from '../type/canvasDefine';
 
 export const useHistory = (
   initalValue: []
-): [ElementsDefain, setState, Void, Void] => {
+): [ElementsList, setState, Void, Void] => {
   const [index, setIndex] = useState(0);
-  const [history, setHistory] = useState<ElementsDefain[]>([initalValue]);
+  const [history, setHistory] = useState<ElementsList[]>([initalValue]);
   const setState = (
-    action: ElementsDefain | ((prevState: ElementsDefain) => ElementsDefain),
+    action: ElementsList | ((prevState: ElementsList) => ElementsList),
     overwirte = false
   ) => {
     const newState =

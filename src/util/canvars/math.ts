@@ -1,11 +1,11 @@
-import { ElementsPosition } from '../../type/canvasDefine';
+import { ElementsInfo } from '../../type/canvasDefine';
 
 export { positionWithinElement, adjustElementCoordinates };
 
 function positionWithinElement(
   x: number,
   y: number,
-  element: ElementsPosition
+  element: ElementsInfo
 ): unknown {
   const { type, points } = element;
   const index = points.length - 1;
@@ -31,7 +31,7 @@ function positionWithinElement(
   }
 }
 
-function adjustElementCoordinates(element: ElementsPosition) {
+function adjustElementCoordinates(element: ElementsInfo) {
   const { type, points } = element;
   const index = points.length - 1;
   const { x1, y1, x2, y2 } = points[index];

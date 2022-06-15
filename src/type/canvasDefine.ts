@@ -1,15 +1,20 @@
-export interface ElementsPosition {
+export interface ElementsInfo {
   id: string;
   type: Tool;
   position: string | null;
-  points: ElementPoint;
+  points: ElementsPosition;
 }
 
-export type ElementPoint = { x1: number; y1: number; x2: number; y2: number }[];
+export type ElementsPosition = {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}[];
 
-export type ElementsDefain = ElementsPosition[];
+export type ElementsList = ElementsInfo[];
 
-export interface SelectPosition extends ElementsPosition {
+export interface SelectPosition extends ElementsInfo {
   offsetX: number;
   offsetY: number;
 }
@@ -18,7 +23,7 @@ export type Tool = 'selection' | 'line' | 'rect' | 'pencil';
 export type Action = 'none' | 'drawing' | 'moving' | 'resize';
 
 export type setState = (
-  state: ElementsDefain | ((prevState: ElementsDefain) => ElementsDefain),
+  state: ElementsList | ((prevState: ElementsList) => ElementsList),
   overwirte?: boolean
 ) => void;
 export type Void = () => void;

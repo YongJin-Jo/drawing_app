@@ -2,8 +2,8 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useHistory } from './hooks/hook';
 import {
   Action,
-  ElementsDefain,
-  ElementsPosition,
+  ElementsList,
+  ElementsInfo,
   SelectPosition,
   Tool,
   setState,
@@ -57,7 +57,7 @@ function App() {
     type,
     position,
     points: [{ x1, y1, x2, y2 }],
-  }: ElementsPosition) => {
+  }: ElementsInfo) => {
     const elementsCopy = [...elements];
     const findindex = elementsCopy.findIndex(item => item.id === id);
 
@@ -123,7 +123,7 @@ function App() {
       }
     } else {
       setAction('drawing');
-      const createPosition: ElementsPosition = {
+      const createPosition: ElementsInfo = {
         id: Date.now().toString(),
         type: tooltype,
         position: null,
@@ -131,7 +131,7 @@ function App() {
       };
 
       const updateElement = createElement(createPosition);
-      setElements((prevState: ElementsDefain) => [...prevState, updateElement]);
+      setElements((prevState: ElementsList) => [...prevState, updateElement]);
     }
   };
 

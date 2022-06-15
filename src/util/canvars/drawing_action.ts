@@ -1,7 +1,7 @@
 import {
-  ElementPoint,
-  ElementsDefain,
   ElementsPosition,
+  ElementsList,
+  ElementsInfo,
 } from '../../type/canvasDefine';
 import { positionWithinElement } from './math';
 
@@ -16,7 +16,7 @@ function createElement({
   type,
   position,
   points: [{ x1, y1, x2, y2 }],
-}: ElementsPosition) {
+}: ElementsInfo) {
   switch (type) {
     case 'line':
     case 'rect':
@@ -39,7 +39,7 @@ function createElement({
 
 function canversTarget(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-  return function (elementInfo: ElementsPosition) {
+  return function (elementInfo: ElementsInfo) {
     switch (elementInfo.type) {
       case 'line':
         return createLine(ctx, elementInfo.points);
@@ -53,7 +53,7 @@ function canversTarget(canvas: HTMLCanvasElement) {
   };
 }
 // 라인 그리기 기능
-function createLine(ctx: CanvasRenderingContext2D, points: ElementPoint) {
+function createLine(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
   for (const property of points) {
     const { x1, y1, x2, y2 } = property;
     ctx.save();
@@ -65,7 +65,7 @@ function createLine(ctx: CanvasRenderingContext2D, points: ElementPoint) {
 }
 
 //사각형 그리기 기능
-function createRect(ctx: CanvasRenderingContext2D, points: ElementPoint) {
+function createRect(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
   for (const property of points) {
     const { x1, y1, x2, y2 } = property;
     const w = x2 - x1;
@@ -77,7 +77,7 @@ function createRect(ctx: CanvasRenderingContext2D, points: ElementPoint) {
 }
 
 // 브러쉬
-function createBurush(ctx: CanvasRenderingContext2D, points: ElementPoint) {
+function createBurush(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
   for (const property of points) {
     const { x1, y1, x2, y2 } = property;
     ctx.beginPath();
@@ -89,13 +89,13 @@ function createBurush(ctx: CanvasRenderingContext2D, points: ElementPoint) {
 }
 
 // 좌표 수정
-function getElementAtPosition(x: number, y: number, elements: ElementsDefain) {
+function getElementAtPosition(x: number, y: number, elements: ElementsList) {
   const findElements = elements
     .map(element => ({
       ...element,
       position: positionWithinElement(x, y, element),
     }))
-    .find(element => element.position !== null) as ElementsPosition;
+    .find(element => element.position !== null) as ElementsInfo;
 
   return findElements;
 }
