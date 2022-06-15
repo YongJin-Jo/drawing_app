@@ -14,6 +14,7 @@ import {
   createElement,
   getElementAtPosition,
   pointerPosition,
+  resizingCoordinates,
 } from './util/canvars/drawing_action';
 import { adjustElementCoordinates } from './util/canvars/math';
 
@@ -147,24 +148,45 @@ function App() {
 
     if (action === 'drawing') {
       const len = elements.length - 1;
-      const { id, position, points } = elements[len];
+      const { id, position, points, type } = elements[len];
       const pointIndex = points.length - 1;
+      switch (type) {
+        case 'line':
+        case 'rect': {
+          points[pointIndex] = {
+            x1: points[pointIndex].x1,
+            y1: points[pointIndex].y1,
+            x2: changeX,
+            y2: changeY,
+          };
 
-      points[pointIndex] = {
-        x1: points[pointIndex].x1,
-        y1: points[pointIndex].y1,
-        x2: changeX,
-        y2: changeY,
-      };
-
-      const createPosition = {
-        id,
-        type: tooltype,
-        position,
-        points,
-      };
-
-      updateElement(createPosition);
+          const createPosition = {
+            id,
+            type: tooltype,
+            position,
+            points,
+          };
+          updateElement(createPosition);
+          break;
+        }
+        case 'pencil': {
+          const createPosition = {
+            id,
+            type: tooltype,
+            position,
+            points: [
+              {
+                x1: points[pointIndex].x2,
+                y1: points[pointIndex].y2,
+                x2: changeX,
+                y2: changeY,
+              },
+            ],
+          };
+          updateElement(createPosition);
+          break;
+        }
+      }
     } else if (action === 'moving') {
       const { id, type, offsetX, offsetY, position, points } =
         selectedElement as SelectPosition;
@@ -274,28 +296,3 @@ function App() {
 }
 
 export default App;
-function resizingCoordinates(
-  changeX: number,
-  changeY: number,
-  position: string,
-  coordinates: {
-    offsetX: number;
-    offsetY: number;
-    points: { x1: number; y1: number; x2: number; y2: number }[];
-  }
-) {
-  const index = coordinates.points.length - 1;
-  const { x1, y1, x2, y2 } = coordinates.points[index];
-  switch (position) {
-    case 'tl':
-    case 'start':
-      return { x1: changeX, y1: changeY, x2, y2 };
-    case 'bl':
-      return { x1: changeX, y1, x2, y2: changeY };
-    case 'br':
-    case 'end':
-      return { x1, y1, x2: changeX, y2: changeY };
-    default:
-      return { x1, y1: changeY, x2: changeX, y2 };
-  }
-}

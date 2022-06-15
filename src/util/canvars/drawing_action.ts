@@ -78,6 +78,13 @@ function createRect(ctx: CanvasRenderingContext2D, points: ElementPoint) {
 
 // 브러쉬
 function createBurush(ctx: CanvasRenderingContext2D, points: ElementPoint) {
+  for (const property of points) {
+    const { x1, y1, x2, y2 } = property;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
   return;
 }
 
@@ -93,6 +100,33 @@ function getElementAtPosition(x: number, y: number, elements: ElementsDefain) {
   return findElements;
 }
 
+// 사이즈 재조정
+function resizingCoordinates(
+  changeX: number,
+  changeY: number,
+  position: string,
+  coordinates: {
+    offsetX: number;
+    offsetY: number;
+    points: { x1: number; y1: number; x2: number; y2: number }[];
+  }
+) {
+  const index = coordinates.points.length - 1;
+  const { x1, y1, x2, y2 } = coordinates.points[index];
+  switch (position) {
+    case 'tl':
+    case 'start':
+      return { x1: changeX, y1: changeY, x2, y2 };
+    case 'bl':
+      return { x1: changeX, y1, x2, y2: changeY };
+    case 'br':
+    case 'end':
+      return { x1, y1, x2: changeX, y2: changeY };
+    default:
+      return { x1, y1: changeY, x2: changeX, y2 };
+  }
+}
+
 export {
   pointerPosition,
   createElement,
@@ -100,4 +134,5 @@ export {
   createRect,
   canversTarget,
   getElementAtPosition,
+  resizingCoordinates,
 };
