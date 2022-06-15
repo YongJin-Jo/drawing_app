@@ -24,10 +24,6 @@ function createElement({
     case 'pencil':
       return {
         id,
-        x1,
-        y1,
-        x2,
-        y2,
         type,
         position,
         points: [{ x1, y1, x2, y2 }],
@@ -106,8 +102,6 @@ function resizingCoordinates(
   changeY: number,
   position: string,
   coordinates: {
-    offsetX: number;
-    offsetY: number;
     points: { x1: number; y1: number; x2: number; y2: number }[];
   }
 ) {

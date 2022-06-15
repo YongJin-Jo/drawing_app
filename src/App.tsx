@@ -102,17 +102,38 @@ function App() {
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
+    console.log(changeX, changeY);
 
     if (tooltype === 'selection') {
       const element = getElementAtPosition(changeX, changeY, elements);
       if (element) {
-        const offsetX = changeX - element.points[0].x1;
-        const offsetY = changeY - element.points[0].y1;
-        setSelectedElement({
-          ...element,
-          offsetX,
-          offsetY,
-        });
+        if (element.type === 'pencil') {
+          const offsetX = element.points.map(point => {
+            const x1 = changeX - point.x1;
+            const x2 = changeX - point.x2;
+            return { x1, x2 };
+          });
+          const offsetY = element.points.map(point => {
+            const y1 = changeY - point.y1;
+            const y2 = changeY - point.y1;
+            return { y1, y2 };
+          });
+
+          setSelectedElement({
+            ...element,
+            offsetX,
+            offsetY,
+          });
+        } else {
+          const offsetX = changeX - element.points[0].x1;
+          const offsetY = changeY - element.points[0].y1;
+          setSelectedElement({
+            ...element,
+            offsetX,
+            offsetY,
+          });
+        }
+
         setElements(prevState => prevState);
 
         if (element.position === 'inside') {
@@ -190,26 +211,43 @@ function App() {
     } else if (action === 'moving') {
       const { id, type, offsetX, offsetY, position, points } =
         selectedElement as SelectPosition;
-      const Index = points.length - 1;
-      const prevPoints = points[Index];
-      const w = prevPoints.x2 - prevPoints.x1;
-      const h = prevPoints.y2 - prevPoints.y1;
-      const newX1 = changeX - (offsetX as number);
-      const newY1 = changeY - (offsetY as number);
+      if (selectedElement?.type === 'pencil') {
+        const offsetXList = offsetX as { x1: number; x2: number }[];
+        const offsetYList = offsetY as { y1: number; y2: number }[];
+        const newPoints = selectedElement.points.map((point, index) => {
+          return {
+            x1: changeX - offsetXList[index].x1,
+            y1: changeY - offsetYList[index].y1,
+            x2: changeX - offsetXList[index].x2,
+            y2: changeY - offsetYList[index].y2,
+          };
+        });
+        const elementsCopy = [...elements];
+        const findIndex = elementsCopy.findIndex(itme => itme.id === id);
+        elementsCopy[findIndex].points = [...newPoints];
+        setElements(elementsCopy, true);
+      } else {
+        const Index = points.length - 1;
+        const prevPoints = points[Index];
+        const w = prevPoints.x2 - prevPoints.x1;
+        const h = prevPoints.y2 - prevPoints.y1;
+        const newX1 = changeX - (offsetX as number);
+        const newY1 = changeY - (offsetY as number);
 
-      points[Index] = {
-        x1: newX1,
-        y1: newY1,
-        x2: newX1 + w,
-        y2: newY1 + h,
-      };
+        points[Index] = {
+          x1: newX1,
+          y1: newY1,
+          x2: newX1 + w,
+          y2: newY1 + h,
+        };
 
-      updateElement({
-        id,
-        type,
-        position,
-        points,
-      });
+        updateElement({
+          id,
+          type,
+          position,
+          points,
+        });
+      }
     } else if (action === 'resize') {
       const { id, type, position, ...coordinates } =
         selectedElement as SelectPosition;

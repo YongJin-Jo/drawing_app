@@ -15,8 +15,8 @@ export type ElementsPosition = {
 export type ElementsList = ElementsInfo[];
 
 export interface SelectPosition extends ElementsInfo {
-  offsetX: number;
-  offsetY: number;
+  offsetX: number | { x1: number; x2: number }[];
+  offsetY: number | { y1: number; y2: number }[];
 }
 
 export type Tool = 'selection' | 'line' | 'rect' | 'pencil';
