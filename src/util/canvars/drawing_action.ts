@@ -2,6 +2,7 @@ import {
   ElementsPosition,
   ElementsList,
   ElementsInfo,
+  ElementsPencilPosition,
 } from '../../type/canvasDefine';
 import { positionWithinElement } from './math';
 
@@ -11,23 +12,23 @@ function pointerPosition(x1: number, y1: number) {
   return { changeX, changeY };
 }
 
-function createElement({
-  id,
-  type,
-  position,
-  points: [{ x1, y1, x2, y2 }],
-}: ElementsInfo) {
+function createElement({ id, type, position, points }: ElementsInfo) {
   switch (type) {
     case 'line':
-    case 'rect':
+    case 'rect': {
+      const [{ x1, y1, x2, y2 }] = points as ElementsPosition[];
       return { id, type, position, points: [{ x1, y1, x2, y2 }] };
-    case 'pencil':
+    }
+    case 'pencil': {
+      const [{ x1, y1 }] = points as ElementsPencilPosition[];
+
       return {
         id,
         type,
         position,
-        points: [{ x1, y1, x2, y2 }],
+        points: [{ x1, y1 }],
       };
+    }
     default:
       throw new Error(`Type not found ${type}`);
   }
@@ -38,9 +39,9 @@ function canversTarget(canvas: HTMLCanvasElement) {
   return function (elementInfo: ElementsInfo) {
     switch (elementInfo.type) {
       case 'line':
-        return createLine(ctx, elementInfo.points);
+        return createLine(ctx, elementInfo.points as ElementsPosition[]);
       case 'rect':
-        return createRect(ctx, elementInfo.points);
+        return createRect(ctx, elementInfo.points as ElementsPosition[]);
       case 'pencil':
         return createBurush(ctx, elementInfo.points);
       default:
@@ -49,7 +50,7 @@ function canversTarget(canvas: HTMLCanvasElement) {
   };
 }
 // 라인 그리기 기능
-function createLine(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
+function createLine(ctx: CanvasRenderingContext2D, points: ElementsPosition[]) {
   for (const property of points) {
     const { x1, y1, x2, y2 } = property;
     ctx.save();
@@ -61,7 +62,7 @@ function createLine(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
 }
 
 //사각형 그리기 기능
-function createRect(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
+function createRect(ctx: CanvasRenderingContext2D, points: ElementsPosition[]) {
   for (const property of points) {
     const { x1, y1, x2, y2 } = property;
     const w = x2 - x1;
@@ -73,14 +74,17 @@ function createRect(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
 }
 
 // 브러쉬
-function createBurush(ctx: CanvasRenderingContext2D, points: ElementsPosition) {
-  for (const property of points) {
-    const { x1, y1, x2, y2 } = property;
+function createBurush(
+  ctx: CanvasRenderingContext2D,
+  points: ElementsPencilPosition[]
+) {
+  for (let i = 0; i < points.length - 1; i++) {
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.moveTo(points[i].x1, points[i].y1);
+    ctx.lineTo(points[i + 1].x1, points[i + 1].y1);
     ctx.stroke();
   }
+
   return;
 }
 
@@ -101,12 +105,10 @@ function resizingCoordinates(
   changeX: number,
   changeY: number,
   position: string,
-  coordinates: {
-    points: { x1: number; y1: number; x2: number; y2: number }[];
-  }
+  points: ElementsPosition[]
 ) {
-  const index = coordinates.points.length - 1;
-  const { x1, y1, x2, y2 } = coordinates.points[index];
+  const index = points.length - 1;
+  const { x1, y1, x2, y2 } = points[index];
   switch (position) {
     case 'tl':
     case 'start':

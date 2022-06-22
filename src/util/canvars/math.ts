@@ -1,4 +1,8 @@
-import { ElementsInfo } from '../../type/canvasDefine';
+import {
+  ElementsInfo,
+  ElementsPencilPosition,
+  ElementsPosition,
+} from '../../type/canvasDefine';
 
 export { positionWithinElement, adjustElementCoordinates };
 
@@ -9,9 +13,10 @@ function positionWithinElement(
 ): unknown {
   const { type, points } = element;
   const index = points.length - 1;
-  const { x1, y1, x2, y2 } = points[index];
+
   switch (type) {
     case 'line': {
+      const { x1, y1, x2, y2 } = points[index] as ElementsPosition;
       const on = onLine(x1, y1, x2, y2, x, y, 1);
       const start = nearPoint(x, y, x1, y1, 'start');
       const end = nearPoint(x, y, x2, y2, 'end');
@@ -19,6 +24,8 @@ function positionWithinElement(
       return on || start || end;
     }
     case 'rect': {
+      const { x1, y1, x2, y2 } = points[index] as ElementsPosition;
+
       const topLeft = nearPoint(x, y, x1, y1, 'tl');
       const topRight = nearPoint(x, y, x2, y1, 'tr');
       const bottomLeft = nearPoint(x, y, x1, y2, 'bl');
@@ -27,9 +34,12 @@ function positionWithinElement(
       return topLeft || topRight || bottomLeft || bottomRight || inside;
     }
     case 'pencil': {
-      const betweenAnyPoint = element.points.some(point => {
-        return onLine(point.x1, point.y1, point.x2, point.y2, x, y, 5);
+      const betweenAnyPoint = element.points.some((point, index) => {
+        const nextPoint = points[index + 1] as ElementsPencilPosition;
+        if (!nextPoint) return false;
+        return onLine(point.x1, point.y1, nextPoint.x1, nextPoint.y1, x, y, 5);
       });
+
       const onPath = betweenAnyPoint ? 'inside' : null;
       return onPath;
     }
@@ -39,7 +49,7 @@ function positionWithinElement(
 function adjustElementCoordinates(element: ElementsInfo) {
   const { type, points } = element;
   const index = points.length - 1;
-  const { x1, y1, x2, y2 } = points[index];
+  const { x1, y1, x2, y2 } = points[index] as ElementsPosition;
 
   if (type === 'rect') {
     const minX = Math.min(x1, x2);

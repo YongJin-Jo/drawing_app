@@ -6,7 +6,8 @@ import {
   ElementsInfo,
   SelectPosition,
   Tool,
-  setState,
+  ElementsPosition,
+  ElementsPencilPosition,
 } from './type/canvasDefine';
 import { cursorForPosition } from './util/canvars/cursorStyle';
 import {
@@ -52,18 +53,13 @@ function App() {
     };
   }, [undo, redo]);
 
-  const updateElement = ({
-    id,
-    type,
-    position,
-    points: [{ x1, y1, x2, y2 }],
-  }: ElementsInfo) => {
+  const updateElement = ({ id, type, position, points }: ElementsInfo) => {
     const elementsCopy = [...elements];
     const findindex = elementsCopy.findIndex(item => item.id === id);
-
     switch (type) {
       case 'line':
       case 'rect': {
+        const [{ x1, y1, x2, y2 }] = points as ElementsPosition[];
         const updatedEleElement = createElement({
           id,
           type,
@@ -87,12 +83,15 @@ function App() {
         };
         break;
       }
-      case 'pencil':
+      case 'pencil': {
+        const [{ x1, y1 }] = points as ElementsPencilPosition[];
+
         elementsCopy[findindex].points = [
-          ...(elementsCopy[findindex].points as []),
-          { x1, y1, x2, y2 },
+          ...(elementsCopy[findindex].points as ElementsPencilPosition[]),
+          { x1, y1 },
         ];
         break;
+      }
       default:
         throw new Error('not fount type');
     }
@@ -102,21 +101,17 @@ function App() {
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
-    console.log(changeX, changeY);
-
     if (tooltype === 'selection') {
       const element = getElementAtPosition(changeX, changeY, elements);
       if (element) {
         if (element.type === 'pencil') {
           const offsetX = element.points.map(point => {
             const x1 = changeX - point.x1;
-            const x2 = changeX - point.x2;
-            return { x1, x2 };
+            return x1;
           });
           const offsetY = element.points.map(point => {
             const y1 = changeY - point.y1;
-            const y2 = changeY - point.y1;
-            return { y1, y2 };
+            return y1;
           });
 
           setSelectedElement({
@@ -144,12 +139,22 @@ function App() {
       }
     } else {
       setAction('drawing');
-      const createPosition: ElementsInfo = {
-        id: Date.now().toString(),
-        type: tooltype,
-        position: null,
-        points: [{ x1: changeX, y1: changeY, x2: changeX, y2: changeY }],
-      };
+      let createPosition: ElementsInfo;
+      if (tooltype === 'pencil') {
+        createPosition = {
+          id: Date.now().toString(),
+          type: tooltype,
+          position: null,
+          points: [{ x1: changeX, y1: changeY }],
+        };
+      } else {
+        createPosition = {
+          id: Date.now().toString(),
+          type: tooltype,
+          position: null,
+          points: [{ x1: changeX, y1: changeY, x2: changeX, y2: changeY }],
+        };
+      }
 
       const updateElement = createElement(createPosition);
       setElements((prevState: ElementsList) => [...prevState, updateElement]);
@@ -197,10 +202,8 @@ function App() {
             position,
             points: [
               {
-                x1: points[pointIndex].x2,
-                y1: points[pointIndex].y2,
-                x2: changeX,
-                y2: changeY,
+                x1: changeX,
+                y1: changeY,
               },
             ],
           };
@@ -212,23 +215,23 @@ function App() {
       const { id, type, offsetX, offsetY, position, points } =
         selectedElement as SelectPosition;
       if (selectedElement?.type === 'pencil') {
-        const offsetXList = offsetX as { x1: number; x2: number }[];
-        const offsetYList = offsetY as { y1: number; y2: number }[];
-        const newPoints = selectedElement.points.map((point, index) => {
+        const offsetXList = offsetX as number[];
+        const offsetYList = offsetY as number[];
+        const newPoints = selectedElement.points.map((_, index) => {
           return {
-            x1: changeX - offsetXList[index].x1,
-            y1: changeY - offsetYList[index].y1,
-            x2: changeX - offsetXList[index].x2,
-            y2: changeY - offsetYList[index].y2,
+            x1: changeX - offsetXList[index],
+            y1: changeY - offsetYList[index],
           };
         });
+        console.log(newPoints);
+
         const elementsCopy = [...elements];
         const findIndex = elementsCopy.findIndex(itme => itme.id === id);
         elementsCopy[findIndex].points = [...newPoints];
         setElements(elementsCopy, true);
       } else {
         const Index = points.length - 1;
-        const prevPoints = points[Index];
+        const prevPoints = points[Index] as ElementsPosition;
         const w = prevPoints.x2 - prevPoints.x1;
         const h = prevPoints.y2 - prevPoints.y1;
         const newX1 = changeX - (offsetX as number);
@@ -249,13 +252,12 @@ function App() {
         });
       }
     } else if (action === 'resize') {
-      const { id, type, position, ...coordinates } =
-        selectedElement as SelectPosition;
+      const { id, type, position, points } = selectedElement as SelectPosition;
       const { x1, y1, x2, y2 } = resizingCoordinates(
         changeX,
         changeY,
         position as string,
-        coordinates
+        points as ElementsPosition[]
       );
 
       updateElement({
