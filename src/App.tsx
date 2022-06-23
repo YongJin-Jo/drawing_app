@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useHistory } from './hooks/hook';
 import {
   Action,
@@ -21,13 +21,13 @@ import { adjustElementCoordinates } from './util/canvars/math';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [tooltype, setTooltype] = useState<Tool>('pencil');
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const [tooltype, setTooltype] = useState<Tool>('text');
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
   const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState<Action>('none');
-
   useLayoutEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
@@ -36,7 +36,7 @@ function App() {
     elements.forEach(data => core(data));
   }, [elements]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const undoRedoFunction = (event: any) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
         if (event.shiftKey) {
@@ -53,7 +53,18 @@ function App() {
     };
   }, [undo, redo]);
 
-  const updateElement = ({ id, type, position, points }: ElementsInfo) => {
+  useEffect(() => {
+    const textArea = textAreaRef.current as HTMLTextAreaElement;
+    if (action === 'writing') textArea.focus();
+  }, [action]);
+
+  const updateElement = ({
+    id,
+    type,
+    position,
+    points,
+    text,
+  }: ElementsInfo) => {
     const elementsCopy = [...elements];
     const findindex = elementsCopy.findIndex(item => item.id === id);
     switch (type) {
@@ -92,6 +103,9 @@ function App() {
         ];
         break;
       }
+      case 'text':
+        elements[findindex].text = text;
+        break;
       default:
         throw new Error('not fount type');
     }
@@ -99,6 +113,7 @@ function App() {
   };
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (action === 'writing') return;
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
     if (tooltype === 'selection') {
@@ -138,7 +153,7 @@ function App() {
         }
       }
     } else {
-      setAction('drawing');
+      setAction(tooltype === 'text' ? 'writing' : 'drawing');
       let createPosition: ElementsInfo;
       if (tooltype === 'pencil') {
         createPosition = {
@@ -160,7 +175,8 @@ function App() {
       setElements((prevState: ElementsList) => [...prevState, updateElement]);
     }
   };
-
+  //TODO text 기능 사용후 rodo 기능 시용하면 맨첫번째 인덱스로 돌아갈때 오류 나옴
+  //TODO Slelection 기능사용하여 도형을 움직일때 움직이기 전 데이터와 후 데이터가 같이 변함
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     const { changeX, changeY } = pointerPosition(clientX, clientY);
@@ -223,8 +239,6 @@ function App() {
             y1: changeY - offsetYList[index],
           };
         });
-        console.log(newPoints);
-
         const elementsCopy = [...elements];
         const findIndex = elementsCopy.findIndex(itme => itme.id === id);
         elementsCopy[findIndex].points = [...newPoints];
@@ -275,10 +289,22 @@ function App() {
       const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
       updateElement({ id, type, position, points: [{ x1, y1, x2, y2 }] });
     }
+    if (action === 'writing') return;
     setAction('none');
     setSelectedElement(null);
   };
-
+  const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    const { id, points, type, position } = elements[elements.length - 1];
+    setAction('none');
+    setSelectedElement(null);
+    updateElement({
+      id,
+      type,
+      position,
+      points,
+      text: event.currentTarget.value,
+    });
+  };
   return (
     <>
       <div style={{ display: 'flex' }}>
@@ -315,13 +341,32 @@ function App() {
             }}
           />
           <label htmlFor="Pencil">Pencil</label>
+          <input
+            type="radio"
+            checked={tooltype === 'text'}
+            onChange={() => {
+              setTooltype('text');
+            }}
+          />
+          <label htmlFor="text">Text</label>
         </div>
         <div>
           <button onClick={undo}>Undo</button>
           <button onClick={redo}>Redo</button>
         </div>
       </div>
-
+      {action === 'writing' ? (
+        <textarea
+          ref={textAreaRef}
+          autoFocus={true}
+          onBlur={handleBlur}
+          style={{
+            position: 'fixed',
+            left: elements[elements.length - 1].points[0].x1,
+            top: elements[elements.length - 1].points[0].y1,
+          }}
+        />
+      ) : null}
       <canvas
         ref={canvasRef}
         id="Canvas"

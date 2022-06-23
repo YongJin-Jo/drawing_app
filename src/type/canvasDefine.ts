@@ -3,6 +3,7 @@ export interface ElementsInfo {
   type: Tool;
   position: string | null;
   points: ElementsPosition[] | ElementsPencilPosition[];
+  text?: string;
 }
 
 export type ElementsPosition = {
@@ -22,8 +23,8 @@ export interface SelectPosition extends ElementsInfo {
   offsetY: number | number[];
 }
 
-export type Tool = 'selection' | 'line' | 'rect' | 'pencil';
-export type Action = 'none' | 'drawing' | 'moving' | 'resize';
+export type Tool = 'selection' | 'line' | 'rect' | 'pencil' | 'text';
+export type Action = 'none' | 'drawing' | 'moving' | 'resize' | 'writing';
 
 export type setState = (
   state: ElementsList | ((prevState: ElementsList) => ElementsList),

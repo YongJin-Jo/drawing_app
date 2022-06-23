@@ -12,12 +12,12 @@ function pointerPosition(x1: number, y1: number) {
   return { changeX, changeY };
 }
 
-function createElement({ id, type, position, points }: ElementsInfo) {
+function createElement({ id, type, position, points, text }: ElementsInfo) {
   switch (type) {
     case 'line':
     case 'rect': {
       const [{ x1, y1, x2, y2 }] = points as ElementsPosition[];
-      return { id, type, position, points: [{ x1, y1, x2, y2 }] };
+      return { id, type, position, text, points: [{ x1, y1, x2, y2 }] };
     }
     case 'pencil': {
       const [{ x1, y1 }] = points as ElementsPencilPosition[];
@@ -26,9 +26,15 @@ function createElement({ id, type, position, points }: ElementsInfo) {
         id,
         type,
         position,
+        text,
         points: [{ x1, y1 }],
       };
     }
+    case 'text': {
+      const [{ x1, y1 }] = points as ElementsPencilPosition[];
+      return { id, type, position, text: '', points: [{ x1, y1 }] };
+    }
+
     default:
       throw new Error(`Type not found ${type}`);
   }
@@ -44,6 +50,8 @@ function canversTarget(canvas: HTMLCanvasElement) {
         return createRect(ctx, elementInfo.points as ElementsPosition[]);
       case 'pencil':
         return createBurush(ctx, elementInfo.points);
+      case 'text':
+        return createText(ctx, elementInfo.points, elementInfo.text as string);
       default:
         throw new Error(`Type not found ${elementInfo.type}`);
     }
@@ -86,6 +94,21 @@ function createBurush(
   }
 
   return;
+}
+
+//텍스트  생성
+function createText(
+  ctx: CanvasRenderingContext2D,
+  points: ElementsPencilPosition[],
+  text: string
+) {
+  for (const property of points) {
+    const { x1, y1 } = property;
+    ctx.beginPath();
+    ctx.font = '48px serif';
+    ctx.fillText(text, x1, y1);
+    return;
+  }
 }
 
 // 좌표 수정
