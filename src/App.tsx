@@ -17,7 +17,7 @@ import {
   resizingCoordinates,
 } from './util/canvars/drawing_action';
 import { adjustElementCoordinates } from './util/canvars/math';
-
+import { cloneDeep } from 'lodash';
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -25,14 +25,14 @@ function App() {
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
-  const [elements, setElements, undo, redo] = useHistory([]);
+  const [elements, setElements, undo, redo] = useHistory({});
   const [action, setAction] = useState<Action>('none');
   useLayoutEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     const core = canversTarget(canvas);
-    elements.forEach(data => core(data));
+    Object.values(elements).forEach(data => core(data));
   }, [elements]);
 
   useEffect(() => {
@@ -64,21 +64,20 @@ function App() {
     points,
     text,
   }: ElementsInfo) => {
-    const elementsCopy = [...elements];
-    const findindex = elementsCopy.findIndex(item => item.id === id);
+    const elementsCopy = { ...elements };
+
     switch (type) {
       case 'line':
       case 'rect': {
-        const [{ x1, y1, x2, y2 }] = points as ElementsPosition[];
         const updatedEleElement = createElement({
           id,
           type,
           position,
-          points: [{ x1, y1, x2, y2 }],
+          points,
         });
         const adjustElement = adjustElementCoordinates(updatedEleElement);
 
-        elementsCopy[findindex] = {
+        elementsCopy[id] = {
           id,
           type,
           position: null,
@@ -96,14 +95,14 @@ function App() {
       case 'pencil': {
         const [{ x1, y1 }] = points as ElementsPencilPosition[];
 
-        elementsCopy[findindex].points = [
-          ...(elementsCopy[findindex].points as ElementsPencilPosition[]),
+        elementsCopy[id].points = [
+          ...(elementsCopy[id].points as ElementsPencilPosition[]),
           { x1, y1 },
         ];
         break;
       }
       case 'text':
-        elements[findindex].text = text;
+        elements[id].text = text;
         break;
       default:
         throw new Error('not fount type');
@@ -117,6 +116,7 @@ function App() {
 
     if (tooltype === 'selection') {
       const element = getElementAtPosition(clientX, clientY, elements);
+
       if (element) {
         if (element.type === 'pencil') {
           const offsetX = element.points.map(point => {
@@ -171,11 +171,14 @@ function App() {
       }
 
       const updateElement = createElement(createPosition);
-      setElements((prevState: ElementsList) => [...prevState, updateElement]);
+      setElements((prevState: ElementsList) => {
+        return { ...prevState, [createPosition.id]: updateElement };
+      });
+      setSelectedElement({ ...updateElement, offsetX: 0, offsetY: 0 });
     }
   };
   //TODO text 기능 사용후 rodo 기능 시용하면 맨첫번째 인덱스로 돌아갈때 오류 나옴
-  //TODO Slelection 기능사용하여 도형을 움직일때 움직이기 전 데이터와 후 데이터가 같이 변함
+
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     if (tooltype === 'selection') {
@@ -187,8 +190,7 @@ function App() {
     }
 
     if (action === 'drawing') {
-      const len = elements.length - 1;
-      const { id, position, points, type } = elements[len];
+      const { id, position, points, type } = selectedElement as SelectPosition;
       const pointIndex = points.length - 1;
       switch (type) {
         case 'line':
@@ -237,19 +239,20 @@ function App() {
             y1: clientY - offsetYList[index],
           };
         });
-        const elementsCopy = [...elements];
-        const findIndex = elementsCopy.findIndex(itme => itme.id === id);
-        elementsCopy[findIndex].points = [...newPoints];
+
+        const elementsCopy = cloneDeep(elements);
+        elementsCopy[id].points = [...newPoints];
         setElements(elementsCopy, true);
       } else {
-        const Index = points.length - 1;
-        const prevPoints = points[Index] as ElementsPosition;
+        const pointsCopy = cloneDeep(points) as ElementsPosition[];
+        const Index = pointsCopy.length - 1;
+        const prevPoints = pointsCopy[Index] as ElementsPosition;
         const w = prevPoints.x2 - prevPoints.x1;
         const h = prevPoints.y2 - prevPoints.y1;
         const newX1 = clientX - (offsetX as number);
         const newY1 = clientY - (offsetY as number);
 
-        points[Index] = {
+        pointsCopy[Index] = {
           x1: newX1,
           y1: newY1,
           x2: newX1 + w,
@@ -260,7 +263,7 @@ function App() {
           id,
           type,
           position,
-          points,
+          points: pointsCopy,
         });
       }
     } else if (action === 'resize') {
@@ -282,9 +285,8 @@ function App() {
   };
   const handleMouseUp = () => {
     if (action === 'drawing' || action === 'resize') {
-      const index = elements.length - 1;
-      const { id, type, position } = elements[index];
-      const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
+      const { id, type, position } = selectedElement as SelectPosition;
+      const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[id]);
       updateElement({ id, type, position, points: [{ x1, y1, x2, y2 }] });
     }
     if (action === 'writing') return;
@@ -293,7 +295,8 @@ function App() {
     setSelectedElement(null);
   };
   const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
-    const { id, points, type, position } = elements[elements.length - 1];
+    const index = Object.keys(elements).length - 1;
+    const { id, points, type, position } = elements[index];
     setAction('none');
     setSelectedElement(null);
     updateElement({
@@ -360,8 +363,8 @@ function App() {
           onBlur={handleBlur}
           style={{
             position: 'fixed',
-            left: elements[elements.length - 1].points[0].x1,
-            top: elements[elements.length - 1].points[0].y1,
+            left: elements[Object.keys(elements).length - 1].points[0].x1,
+            top: elements[Object.keys(elements).length - 1].points[0].y1,
           }}
         />
       ) : null}

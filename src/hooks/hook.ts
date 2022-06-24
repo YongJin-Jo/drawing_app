@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ElementsList, setState, Void } from '../type/canvasDefine';
 
 export const useHistory = (
-  initalValue: []
+  initalValue: any
 ): [ElementsList, setState, Void, Void] => {
   const [index, setIndex] = useState(0);
   const [history, setHistory] = useState<ElementsList[]>([initalValue]);

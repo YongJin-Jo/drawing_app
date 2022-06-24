@@ -107,7 +107,7 @@ function createText(
 
 // 좌표 수정
 function getElementAtPosition(x: number, y: number, elements: ElementsList) {
-  const findElements = elements
+  const findElements = Object.values(elements)
     .map(element => ({
       ...element,
       position: positionWithinElement(x, y, element),
