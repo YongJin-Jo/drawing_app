@@ -14,7 +14,6 @@ import {
   canversTarget,
   createElement,
   getElementAtPosition,
-  pointerPosition,
   resizingCoordinates,
 } from './util/canvars/drawing_action';
 import { adjustElementCoordinates } from './util/canvars/math';
@@ -56,7 +55,7 @@ function App() {
   useEffect(() => {
     const textArea = textAreaRef.current as HTMLTextAreaElement;
     if (action === 'writing') textArea.focus();
-  }, [action]);
+  }, [action, elements]);
 
   const updateElement = ({
     id,
@@ -115,17 +114,17 @@ function App() {
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (action === 'writing') return;
     const { clientX, clientY } = event;
-    const { changeX, changeY } = pointerPosition(clientX, clientY);
+
     if (tooltype === 'selection') {
-      const element = getElementAtPosition(changeX, changeY, elements);
+      const element = getElementAtPosition(clientX, clientY, elements);
       if (element) {
         if (element.type === 'pencil') {
           const offsetX = element.points.map(point => {
-            const x1 = changeX - point.x1;
+            const x1 = clientX - point.x1;
             return x1;
           });
           const offsetY = element.points.map(point => {
-            const y1 = changeY - point.y1;
+            const y1 = clientY - point.y1;
             return y1;
           });
 
@@ -135,8 +134,8 @@ function App() {
             offsetY,
           });
         } else {
-          const offsetX = changeX - element.points[0].x1;
-          const offsetY = changeY - element.points[0].y1;
+          const offsetX = clientX - element.points[0].x1;
+          const offsetY = clientY - element.points[0].y1;
           setSelectedElement({
             ...element,
             offsetX,
@@ -155,19 +154,19 @@ function App() {
     } else {
       setAction(tooltype === 'text' ? 'writing' : 'drawing');
       let createPosition: ElementsInfo;
-      if (tooltype === 'pencil') {
+      if (tooltype === 'pencil' || tooltype === 'text') {
         createPosition = {
           id: Date.now().toString(),
           type: tooltype,
           position: null,
-          points: [{ x1: changeX, y1: changeY }],
+          points: [{ x1: clientX, y1: clientY }],
         };
       } else {
         createPosition = {
           id: Date.now().toString(),
           type: tooltype,
           position: null,
-          points: [{ x1: changeX, y1: changeY, x2: changeX, y2: changeY }],
+          points: [{ x1: clientX, y1: clientY, x2: clientX, y2: clientY }],
         };
       }
 
@@ -179,9 +178,8 @@ function App() {
   //TODO Slelection 기능사용하여 도형을 움직일때 움직이기 전 데이터와 후 데이터가 같이 변함
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
-    const { changeX, changeY } = pointerPosition(clientX, clientY);
     if (tooltype === 'selection') {
-      const element = getElementAtPosition(changeX, changeY, elements);
+      const element = getElementAtPosition(clientX, clientY, elements);
 
       event.currentTarget.style.cursor = element
         ? cursorForPosition(element.position)
@@ -198,8 +196,8 @@ function App() {
           points[pointIndex] = {
             x1: points[pointIndex].x1,
             y1: points[pointIndex].y1,
-            x2: changeX,
-            y2: changeY,
+            x2: clientX,
+            y2: clientY,
           };
 
           const createPosition = {
@@ -218,8 +216,8 @@ function App() {
             position,
             points: [
               {
-                x1: changeX,
-                y1: changeY,
+                x1: clientX,
+                y1: clientY,
               },
             ],
           };
@@ -235,8 +233,8 @@ function App() {
         const offsetYList = offsetY as number[];
         const newPoints = selectedElement.points.map((_, index) => {
           return {
-            x1: changeX - offsetXList[index],
-            y1: changeY - offsetYList[index],
+            x1: clientX - offsetXList[index],
+            y1: clientY - offsetYList[index],
           };
         });
         const elementsCopy = [...elements];
@@ -248,8 +246,8 @@ function App() {
         const prevPoints = points[Index] as ElementsPosition;
         const w = prevPoints.x2 - prevPoints.x1;
         const h = prevPoints.y2 - prevPoints.y1;
-        const newX1 = changeX - (offsetX as number);
-        const newY1 = changeY - (offsetY as number);
+        const newX1 = clientX - (offsetX as number);
+        const newY1 = clientY - (offsetY as number);
 
         points[Index] = {
           x1: newX1,
@@ -268,8 +266,8 @@ function App() {
     } else if (action === 'resize') {
       const { id, type, position, points } = selectedElement as SelectPosition;
       const { x1, y1, x2, y2 } = resizingCoordinates(
-        changeX,
-        changeY,
+        clientX,
+        clientY,
         position as string,
         points as ElementsPosition[]
       );
@@ -290,6 +288,7 @@ function App() {
       updateElement({ id, type, position, points: [{ x1, y1, x2, y2 }] });
     }
     if (action === 'writing') return;
+
     setAction('none');
     setSelectedElement(null);
   };
@@ -307,7 +306,7 @@ function App() {
   };
   return (
     <>
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex', position: 'fixed', top: 0 }}>
         <div>
           <input
             type="radio"
@@ -358,7 +357,6 @@ function App() {
       {action === 'writing' ? (
         <textarea
           ref={textAreaRef}
-          autoFocus={true}
           onBlur={handleBlur}
           style={{
             position: 'fixed',

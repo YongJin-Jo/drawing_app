@@ -6,12 +6,6 @@ import {
 } from '../../type/canvasDefine';
 import { positionWithinElement } from './math';
 
-function pointerPosition(x1: number, y1: number) {
-  const changeX = x1 - 8;
-  const changeY = y1 - 30;
-  return { changeX, changeY };
-}
-
 function createElement({ id, type, position, points, text }: ElementsInfo) {
   switch (type) {
     case 'line':
@@ -147,7 +141,6 @@ function resizingCoordinates(
 }
 
 export {
-  pointerPosition,
   createElement,
   createLine,
   createRect,
