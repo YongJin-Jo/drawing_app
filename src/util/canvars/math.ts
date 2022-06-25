@@ -10,7 +10,7 @@ function positionWithinElement(
   x: number,
   y: number,
   element: ElementsInfo
-): unknown {
+): any {
   const { type, points } = element;
   const index = points.length - 1;
 

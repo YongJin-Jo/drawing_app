@@ -53,9 +53,9 @@ function App() {
   }, [undo, redo]);
 
   useEffect(() => {
-    const textArea = textAreaRef.current as HTMLTextAreaElement;
-    if (action === 'writing') textArea.focus();
-  }, [action, elements]);
+    const textArea = textAreaRef as React.RefObject<HTMLTextAreaElement>;
+    if (action === 'writing') textArea.current?.focus();
+  }, [action]);
 
   const updateElement = ({
     id,
@@ -112,6 +112,7 @@ function App() {
 
   const handleMouseDoun = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (action === 'writing') return;
+
     const { clientX, clientY } = event;
 
     if (tooltype === 'selection') {
@@ -171,10 +172,10 @@ function App() {
       }
 
       const updateElement = createElement(createPosition);
+      setSelectedElement({ ...updateElement, offsetX: 0, offsetY: 0 });
       setElements((prevState: ElementsList) => {
         return { ...prevState, [createPosition.id]: updateElement };
       });
-      setSelectedElement({ ...updateElement, offsetX: 0, offsetY: 0 });
     }
   };
   //TODO text 기능 사용후 rodo 기능 시용하면 맨첫번째 인덱스로 돌아갈때 오류 나옴
@@ -295,8 +296,8 @@ function App() {
     setSelectedElement(null);
   };
   const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
-    const index = Object.keys(elements).length - 1;
-    const { id, points, type, position } = elements[index];
+    const { id, points, type, position } = selectedElement as SelectPosition;
+
     setAction('none');
     setSelectedElement(null);
     updateElement({
@@ -310,7 +311,7 @@ function App() {
   return (
     <>
       <div style={{ display: 'flex', position: 'fixed', top: 0 }}>
-        <div>
+        <div style={{ display: 'flex' }}>
           <input
             type="radio"
             checked={tooltype === 'selection'}
@@ -360,11 +361,14 @@ function App() {
       {action === 'writing' ? (
         <textarea
           ref={textAreaRef}
+          autoFocus={true}
           onBlur={handleBlur}
           style={{
             position: 'fixed',
-            left: elements[Object.keys(elements).length - 1].points[0].x1,
-            top: elements[Object.keys(elements).length - 1].points[0].y1,
+            left: Object.values(elements)[Object.keys(elements).length - 1]
+              .points[0].x1,
+            top: Object.values(elements)[Object.keys(elements).length - 1]
+              .points[0].y1,
           }}
         />
       ) : null}
