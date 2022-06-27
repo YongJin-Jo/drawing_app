@@ -53,9 +53,11 @@ function App() {
   }, [undo, redo]);
 
   useEffect(() => {
-    const textArea = textAreaRef as React.RefObject<HTMLTextAreaElement>;
-    if (action === 'writing') textArea.current?.focus();
-  }, [action]);
+    if (action === 'writing') {
+      const textarea = textAreaRef.current as HTMLTextAreaElement;
+      textarea.focus;
+    }
+  }, [action, selectedElement]);
 
   const updateElement = ({
     id,
@@ -179,10 +181,10 @@ function App() {
     }
   };
   //TODO text 기능 사용후 rodo 기능 시용하면 맨첫번째 인덱스로 돌아갈때 오류 나옴
-
+  //TODO text 기능 사용후 selection 기능 사용하면 undefined 텍스트가 출력되는 현상
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
-    if (tooltype === 'selection') {
+    if (tooltype === 'selection' && action != 'writing') {
       const element = getElementAtPosition(clientX, clientY, elements);
 
       event.currentTarget.style.cursor = element
@@ -297,6 +299,7 @@ function App() {
   };
   const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
     const { id, points, type, position } = selectedElement as SelectPosition;
+    console.log('onbule');
 
     setAction('none');
     setSelectedElement(null);
@@ -361,7 +364,6 @@ function App() {
       {action === 'writing' ? (
         <textarea
           ref={textAreaRef}
-          autoFocus={true}
           onBlur={handleBlur}
           style={{
             position: 'fixed',
@@ -372,6 +374,7 @@ function App() {
           }}
         />
       ) : null}
+
       <canvas
         ref={canvasRef}
         id="Canvas"
