@@ -43,6 +43,10 @@ function positionWithinElement(
       const onPath = betweenAnyPoint ? 'inside' : null;
       return onPath;
     }
+    case 'text': {
+      const [{ x1, y1, x2, y2 }] = points as ElementsPosition[];
+      return x >= x1 && y >= y1 && x <= x2 && y <= y2 ? 'inside' : null;
+    }
   }
 }
 

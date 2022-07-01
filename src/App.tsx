@@ -103,9 +103,22 @@ function App() {
         ];
         break;
       }
-      case 'text':
-        elements[id].text = text;
+      case 'text': {
+        const [{ x1, y1 }] = points;
+        const canvas = canvasRef.current as HTMLCanvasElement;
+        const textWidth = canvas.getContext('2d')?.measureText(text as string)
+          .width as number;
+        const textHeight = 48;
+
+        elementsCopy[id] = {
+          id,
+          points: [{ x1, y1, x2: x1 + textWidth, y2: y1 + textHeight }],
+          text,
+          position,
+          type,
+        };
         break;
+      }
       default:
         throw new Error('not fount type');
     }
@@ -299,7 +312,6 @@ function App() {
   };
   const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
     const { id, points, type, position } = selectedElement as SelectPosition;
-    console.log('onbule');
 
     setAction('none');
     setSelectedElement(null);
