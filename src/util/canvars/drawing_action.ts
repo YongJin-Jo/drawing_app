@@ -99,7 +99,8 @@ function createText(
   for (const property of points) {
     const { x1, y1 } = property;
     ctx.beginPath();
-    ctx.font = '48px serif';
+    ctx.textBaseline = 'top';
+    ctx.font = '24px sans-serif';
     ctx.fillText(text, x1, y1);
     return;
   }

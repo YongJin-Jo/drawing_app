@@ -17,7 +17,7 @@ import {
   resizingCoordinates,
 } from './util/canvars/drawing_action';
 import { adjustElementCoordinates } from './util/canvars/math';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, padEnd } from 'lodash';
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -56,6 +56,7 @@ function App() {
     if (action === 'writing') {
       const textarea = textAreaRef.current as HTMLTextAreaElement;
       textarea.focus;
+      textarea.value = selectedElement?.text as string;
     }
   }, [action, selectedElement]);
 
@@ -109,19 +110,20 @@ function App() {
         const textWidth = canvas.getContext('2d')?.measureText(text as string)
           .width as number;
         const textHeight = 48;
-
         elementsCopy[id] = {
           id,
           points: [{ x1, y1, x2: x1 + textWidth, y2: y1 + textHeight }],
-          text,
           position,
           type,
+          text,
         };
+
         break;
       }
       default:
         throw new Error('not fount type');
     }
+
     setElements(elementsCopy, true);
   };
 
@@ -244,8 +246,9 @@ function App() {
         }
       }
     } else if (action === 'moving') {
-      const { id, type, offsetX, offsetY, position, points } =
+      const { id, type, offsetX, offsetY, position, points, text } =
         selectedElement as SelectPosition;
+
       if (selectedElement?.type === 'pencil') {
         const offsetXList = offsetX as number[];
         const offsetYList = offsetY as number[];
@@ -280,6 +283,7 @@ function App() {
           type,
           position,
           points: pointsCopy,
+          text,
         });
       }
     } else if (action === 'resize') {
@@ -299,20 +303,32 @@ function App() {
       });
     }
   };
-  const handleMouseUp = () => {
-    if (action === 'drawing' || action === 'resize') {
-      const { id, type, position } = selectedElement as SelectPosition;
+  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const { clientX, clientY } = event;
+    if (selectedElement != null) {
+      if (
+        selectedElement.type === 'text' &&
+        clientX - (selectedElement.offsetX as number) ===
+          selectedElement.points[0].x1 &&
+        clientY - (selectedElement.offsetY as number) ===
+          selectedElement.points[0].y1
+      ) {
+        event.currentTarget.style.cursor = 'default';
+        setAction('writing');
+        return;
+      }
+      const { id, type, position, text } = selectedElement as SelectPosition;
       const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[id]);
-      updateElement({ id, type, position, points: [{ x1, y1, x2, y2 }] });
+      updateElement({ id, type, position, points: [{ x1, y1, x2, y2 }], text });
     }
     if (action === 'writing') return;
 
     setAction('none');
     setSelectedElement(null);
   };
+
   const handleBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
     const { id, points, type, position } = selectedElement as SelectPosition;
-
     setAction('none');
     setSelectedElement(null);
     updateElement({
@@ -383,6 +399,12 @@ function App() {
               .points[0].x1,
             top: Object.values(elements)[Object.keys(elements).length - 1]
               .points[0].y1,
+            font: '24px sans-serif',
+            margin: 0,
+            borderStyle: 'dashed',
+            outline: 0,
+            overflow: 'hidden',
+            whiteSpace: 'pre',
           }}
         />
       ) : null}
