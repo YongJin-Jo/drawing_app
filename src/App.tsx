@@ -17,7 +17,7 @@ import {
   resizingCoordinates,
 } from './util/canvars/drawing_action';
 import { adjustElementCoordinates } from './util/canvars/math';
-import { cloneDeep, padEnd } from 'lodash';
+import { cloneDeep } from 'lodash';
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
