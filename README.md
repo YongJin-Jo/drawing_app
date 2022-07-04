@@ -1,46 +1,69 @@
-# Getting Started with Create React App
+# 그림판 만들기
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+#### 개발 상황
 
-## Available Scripts
+- 1차 개발 완료
 
-In the project directory, you can run:
+### 라이브러리
 
-### `yarn start`
+- lodash: 4.17.21
+- React: 18.0.0
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 주요 기능
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
 
-### `yarn test`
+### Line
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+![createLine](md/img/createLIne.gif)
 
-### `yarn build`
+- 직선 엘리멘트를 생성합니다.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Rectangle
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+![createRectangle](md/img/createRect.gif)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- 사각형 엘리멘트를 생성합니다.
 
-### `yarn eject`
+### Pencil
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+![createPencli](md/img/createPencil.gif)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- 지유롭게 선을 그을 수 있는 기능 입니다.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Selection
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- 생성된 엘리멘트를 선택할 수 있는 기능 입니다.
 
-## Learn More
+#### moveing
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+![move](md/img/Selection_move.gif)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- 선택된 Elements를 움직일수 있게 하는 기능 입니다.
+
+#### reSizing
+
+![reSizing](md/img/selection_reSizing.gif)
+
+- 선택된 엘리멘트의 사이즈를 조정할 수 있는 기능 입니다.
+
+### Undo
+
+![undo](md/img/udro.gif)
+
+- Elements을 생성하기 전 상태로 돌릴수 있습니다.
+
+### Rode
+
+![rode](md/img/redo.gif)
+
+- Undo를 사용하기 전 상태로 돌릴수 있습니다.
+
+
+## 다음 개발 계획
+
+- [ ] 코드 리펙토링
+- [ ] 상태관리 라이브러리 추가
+- [ ] Selection 기능 Selection Box UI 추가
+- [ ] 도형 세부 옵션
+- [ ] 다른 도형 추가
+- [ ] UI/UX 개선
