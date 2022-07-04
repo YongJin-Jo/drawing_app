@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/drawing_app/static/js/main.482883e8.js",
+    "index.html": "/drawing_app/index.html",
+    "main.482883e8.js.map": "/drawing_app/static/js/main.482883e8.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.482883e8.js"
+  ]
+}
