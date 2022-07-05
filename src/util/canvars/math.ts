@@ -4,7 +4,11 @@ import {
   ElementsPosition,
 } from '../../type/canvasDefine';
 
-export { positionWithinElement, adjustElementCoordinates };
+export {
+  positionWithinElement,
+  adjustElementCoordinates,
+  CalculatesMovingPoints,
+};
 
 function positionWithinElement(
   x: number,
@@ -93,4 +97,21 @@ function distance(a: { x: number; y: number }, b: { x: number; y: number }) {
 
 function nearPoint(x: number, y: number, x1: number, y1: number, name: string) {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
+}
+
+// action moving event
+function CalculatesMovingPoints(
+  point: ElementsPosition[],
+  clientX: number,
+  clientY: number,
+  offsetX: number,
+  offsetY: number
+) {
+  const Index = point.length - 1;
+  const prevPoints = point[Index] as ElementsPosition;
+  const w = prevPoints.x2 - prevPoints.x1;
+  const h = prevPoints.y2 - prevPoints.y1;
+  const newX1 = clientX - (offsetX as number);
+  const newY1 = clientY - (offsetY as number);
+  return { newX1, newY1, w, h };
 }

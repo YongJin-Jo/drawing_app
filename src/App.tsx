@@ -16,8 +16,12 @@ import {
   getElementAtPosition,
   resizingCoordinates,
 } from './util/canvars/drawing_action';
-import { adjustElementCoordinates } from './util/canvars/math';
+import {
+  adjustElementCoordinates,
+  CalculatesMovingPoints,
+} from './util/canvars/math';
 import { cloneDeep } from 'lodash';
+import { undoRedoFunction } from './util/canvars/keybordEvent';
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -27,6 +31,7 @@ function App() {
   );
   const [elements, setElements, undo, redo] = useHistory({});
   const [action, setAction] = useState<Action>('none');
+
   useLayoutEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
@@ -36,19 +41,10 @@ function App() {
   }, [elements]);
 
   useEffect(() => {
-    const undoRedoFunction = (event: any) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
-        if (event.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
-      }
-    };
-    document.addEventListener('keydown', undoRedoFunction);
-
+    const undoRedo = undoRedoFunction(redo, undo);
+    document.addEventListener('keydown', undoRedo);
     return () => {
-      document.removeEventListener('keydown', undoRedoFunction);
+      document.removeEventListener('keydown', undoRedo);
     };
   }, [undo, redo]);
 
@@ -78,20 +74,13 @@ function App() {
           position,
           points,
         });
-        const adjustElement = adjustElementCoordinates(updatedEleElement);
+        const { x1, y1, x2, y2 } = adjustElementCoordinates(updatedEleElement);
 
         elementsCopy[id] = {
           id,
           type,
           position: null,
-          points: [
-            {
-              x1: adjustElement.x1,
-              y1: adjustElement.y1,
-              x2: adjustElement.x2,
-              y2: adjustElement.y2,
-            },
-          ],
+          points: [{ x1, y1, x2, y2 }],
         };
         break;
       }
@@ -136,65 +125,58 @@ function App() {
       const element = getElementAtPosition(clientX, clientY, elements);
 
       if (element) {
+        let offsetX: number | number[];
+        let offsetY: number | number[];
+
         if (element.type === 'pencil') {
-          const offsetX = element.points.map(point => {
+          offsetX = element.points.map(point => {
             const x1 = clientX - point.x1;
             return x1;
           });
-          const offsetY = element.points.map(point => {
+          offsetY = element.points.map(point => {
             const y1 = clientY - point.y1;
             return y1;
           });
-
-          setSelectedElement({
-            ...element,
-            offsetX,
-            offsetY,
-          });
         } else {
-          const offsetX = clientX - element.points[0].x1;
-          const offsetY = clientY - element.points[0].y1;
-          setSelectedElement({
-            ...element,
-            offsetX,
-            offsetY,
-          });
+          offsetX = clientX - element.points[0].x1;
+          offsetY = clientY - element.points[0].y1;
         }
+
+        setSelectedElement({
+          ...element,
+          offsetX,
+          offsetY,
+        });
 
         setElements(prevState => prevState);
 
-        if (element.position === 'inside') {
-          setAction('moving');
-        } else {
-          setAction('resize');
-        }
+        // Action 상태값 변경
+        element.position === 'inside'
+          ? setAction('moving')
+          : setAction('resize');
       }
-    } else {
-      setAction(tooltype === 'text' ? 'writing' : 'drawing');
-      let createPosition: ElementsInfo;
-      if (tooltype === 'pencil' || tooltype === 'text') {
-        createPosition = {
-          id: Date.now().toString(),
-          type: tooltype,
-          position: null,
-          points: [{ x1: clientX, y1: clientY }],
-        };
-      } else {
-        createPosition = {
-          id: Date.now().toString(),
-          type: tooltype,
-          position: null,
-          points: [{ x1: clientX, y1: clientY, x2: clientX, y2: clientY }],
-        };
-      }
-
-      const updateElement = createElement(createPosition);
-      setSelectedElement({ ...updateElement, offsetX: 0, offsetY: 0 });
-      setElements((prevState: ElementsList) => {
-        return { ...prevState, [createPosition.id]: updateElement };
-      });
+      return;
     }
+
+    setAction(tooltype === 'text' ? 'writing' : 'drawing');
+
+    const createPosition: ElementsInfo = {
+      id: Date.now().toString(),
+      type: tooltype,
+      position: null,
+      points:
+        tooltype === 'pencil' || tooltype === 'text'
+          ? [{ x1: clientX, y1: clientY }]
+          : [{ x1: clientX, y1: clientY, x2: clientX, y2: clientY }],
+    };
+
+    const updateElement = createElement(createPosition);
+    setSelectedElement({ ...updateElement, offsetX: 0, offsetY: 0 });
+    setElements((prevState: ElementsList) => {
+      return { ...prevState, [createPosition.id]: updateElement };
+    });
   };
+
   //TODO text 기능 사용후 rodo 기능 시용하면 맨첫번째 인덱스로 돌아갈때 오류 나옴
   //TODO text 기능 사용후 selection 기능 사용하면 undefined 텍스트가 출력되는 현상
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -202,14 +184,15 @@ function App() {
     if (tooltype === 'selection' && action != 'writing') {
       const element = getElementAtPosition(clientX, clientY, elements);
 
+      // mouseCursor Style 변경
       event.currentTarget.style.cursor = element
         ? cursorForPosition(element.position)
         : 'default';
     }
-
     if (action === 'drawing') {
       const { id, position, points, type } = selectedElement as SelectPosition;
       const pointIndex = points.length - 1;
+
       switch (type) {
         case 'line':
         case 'rect': {
@@ -220,17 +203,11 @@ function App() {
             y2: clientY,
           };
 
-          const createPosition = {
-            id,
-            type: tooltype,
-            position,
-            points,
-          };
-          updateElement(createPosition);
+          updateElement({ id, position, points, type: tooltype });
           break;
         }
         case 'pencil': {
-          const createPosition = {
+          updateElement({
             id,
             type: tooltype,
             position,
@@ -240,12 +217,14 @@ function App() {
                 y1: clientY,
               },
             ],
-          };
-          updateElement(createPosition);
+          });
           break;
         }
       }
-    } else if (action === 'moving') {
+      return;
+    }
+
+    if (action === 'moving') {
       const { id, type, offsetX, offsetY, position, points, text } =
         selectedElement as SelectPosition;
 
@@ -262,31 +241,39 @@ function App() {
         const elementsCopy = cloneDeep(elements);
         elementsCopy[id].points = [...newPoints];
         setElements(elementsCopy, true);
-      } else {
-        const pointsCopy = cloneDeep(points) as ElementsPosition[];
-        const Index = pointsCopy.length - 1;
-        const prevPoints = pointsCopy[Index] as ElementsPosition;
-        const w = prevPoints.x2 - prevPoints.x1;
-        const h = prevPoints.y2 - prevPoints.y1;
-        const newX1 = clientX - (offsetX as number);
-        const newY1 = clientY - (offsetY as number);
-
-        pointsCopy[Index] = {
-          x1: newX1,
-          y1: newY1,
-          x2: newX1 + w,
-          y2: newY1 + h,
-        };
-
-        updateElement({
-          id,
-          type,
-          position,
-          points: pointsCopy,
-          text,
-        });
+        return;
       }
-    } else if (action === 'resize') {
+
+      const pointsCopy = cloneDeep(points) as ElementsPosition[];
+      const Index = pointsCopy.length - 1;
+
+      const { newX1, newY1, w, h } = CalculatesMovingPoints(
+        pointsCopy,
+        clientX,
+        clientX,
+        offsetX as number,
+        offsetY as number
+      );
+
+      pointsCopy[Index] = {
+        x1: newX1,
+        y1: newY1,
+        x2: newX1 + w,
+        y2: newY1 + h,
+      };
+
+      updateElement({
+        id,
+        type,
+        position,
+        points: pointsCopy,
+        text,
+      });
+
+      return;
+    }
+
+    if (action === 'resize') {
       const { id, type, position, points } = selectedElement as SelectPosition;
       const { x1, y1, x2, y2 } = resizingCoordinates(
         clientX,
@@ -301,6 +288,7 @@ function App() {
         position,
         points: [{ x1, y1, x2, y2 }],
       });
+      return;
     }
   };
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
