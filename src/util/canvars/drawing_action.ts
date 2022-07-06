@@ -3,6 +3,7 @@ import {
   ElementsList,
   ElementsInfo,
   ElementsPencilPosition,
+  SelectPosition,
 } from '../../type/canvasDefine';
 import { positionWithinElement } from './math';
 
@@ -141,6 +142,23 @@ function resizingCoordinates(
   }
 }
 
+function isTextReWriteing(
+  selectedElement: SelectPosition,
+  clientX: number,
+  clientY: number
+) {
+  if (
+    selectedElement.type === 'text' &&
+    clientX - (selectedElement.offsetX as number) ===
+      selectedElement.points[0].x1 &&
+    clientY - (selectedElement.offsetY as number) ===
+      selectedElement.points[0].y1
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export {
   createElement,
   createLine,
@@ -148,4 +166,5 @@ export {
   canversTarget,
   getElementAtPosition,
   resizingCoordinates,
+  isTextReWriteing,
 };

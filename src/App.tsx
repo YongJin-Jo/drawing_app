@@ -14,6 +14,7 @@ import {
   canversTarget,
   createElement,
   getElementAtPosition,
+  isTextReWriteing,
   resizingCoordinates,
 } from './util/canvars/drawing_action';
 import {
@@ -177,8 +178,6 @@ function App() {
     });
   };
 
-  //TODO text 기능 사용후 rodo 기능 시용하면 맨첫번째 인덱스로 돌아갈때 오류 나옴
-  //TODO text 기능 사용후 selection 기능 사용하면 undefined 텍스트가 출력되는 현상
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     if (tooltype === 'selection' && action != 'writing') {
@@ -245,12 +244,13 @@ function App() {
       }
 
       const pointsCopy = cloneDeep(points) as ElementsPosition[];
+
       const Index = pointsCopy.length - 1;
 
       const { newX1, newY1, w, h } = CalculatesMovingPoints(
-        pointsCopy,
+        points as ElementsPosition[],
         clientX,
-        clientX,
+        clientY,
         offsetX as number,
         offsetY as number
       );
@@ -294,13 +294,9 @@ function App() {
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const { clientX, clientY } = event;
     if (selectedElement != null) {
-      if (
-        selectedElement.type === 'text' &&
-        clientX - (selectedElement.offsetX as number) ===
-          selectedElement.points[0].x1 &&
-        clientY - (selectedElement.offsetY as number) ===
-          selectedElement.points[0].y1
-      ) {
+      const isTextChange = isTextReWriteing(selectedElement, clientX, clientY);
+
+      if (isTextChange) {
         event.currentTarget.style.cursor = 'default';
         setAction('writing');
         return;
