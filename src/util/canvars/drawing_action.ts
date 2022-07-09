@@ -38,29 +38,33 @@ function createElement({ id, type, position, points, text }: ElementsInfo) {
 function canversTarget(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   return function (elementInfo: ElementsInfo) {
+    ctx.save();
+    ctx.beginPath();
     switch (elementInfo.type) {
       case 'line':
-        return createLine(ctx, elementInfo.points as ElementsPosition[]);
+        createLine(ctx, elementInfo.points as ElementsPosition[]);
+        break;
       case 'rect':
-        return createRect(ctx, elementInfo.points as ElementsPosition[]);
+        createRect(ctx, elementInfo.points as ElementsPosition[]);
+        break;
       case 'pencil':
-        return createBurush(ctx, elementInfo.points);
+        createBurush(ctx, elementInfo.points);
+        break;
       case 'text':
-        return createText(ctx, elementInfo.points, elementInfo.text as string);
+        createText(ctx, elementInfo.points, elementInfo.text as string);
+        break;
       default:
         throw new Error(`Type not found ${elementInfo.type}`);
     }
+    ctx.stroke();
   };
 }
 // 라인 그리기 기능
 function createLine(ctx: CanvasRenderingContext2D, points: ElementsPosition[]) {
   for (const property of points) {
     const { x1, y1, x2, y2 } = property;
-    ctx.save();
-    ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.stroke();
   }
 }
 
@@ -70,8 +74,6 @@ function createRect(ctx: CanvasRenderingContext2D, points: ElementsPosition[]) {
     const { x1, y1, x2, y2 } = property;
     const w = x2 - x1;
     const h = y2 - y1;
-    ctx.save();
-    ctx.beginPath();
     ctx.strokeRect(x1, y1, w, h);
   }
 }
@@ -82,10 +84,8 @@ function createBurush(
   points: ElementsPencilPosition[]
 ) {
   for (let i = 0; i < points.length - 1; i++) {
-    ctx.beginPath();
     ctx.moveTo(points[i].x1, points[i].y1);
     ctx.lineTo(points[i + 1].x1, points[i + 1].y1);
-    ctx.stroke();
   }
 
   return;
@@ -99,7 +99,6 @@ function createText(
 ) {
   for (const property of points) {
     const { x1, y1 } = property;
-    ctx.beginPath();
     ctx.textBaseline = 'top';
     ctx.font = '24px sans-serif';
     ctx.fillText(text, x1, y1);
