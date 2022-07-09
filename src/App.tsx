@@ -23,10 +23,15 @@ import {
 } from './util/canvars/math';
 import { cloneDeep } from 'lodash';
 import { undoRedoFunction } from './util/canvars/keybordEvent';
+import { useDispatch, useSelector } from 'react-redux';
+import { useAppSelector } from './store/hooks';
 function App() {
+  const dispath = useDispatch();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [tooltype, setTooltype] = useState<Tool>('text');
+  const tooltype2 = useAppSelector(state => state.toolbar.tooltype);
+  const action2 = useAppSelector(state => state.toolbar.action);
   const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
     null
   );
