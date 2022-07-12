@@ -23,20 +23,21 @@ import {
 } from './util/canvars/math';
 import { cloneDeep } from 'lodash';
 import { undoRedoFunction } from './util/canvars/keybordEvent';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useAppSelector } from './store/hooks';
+import { changeAction, changeTooltype } from './store/toolbarReduser';
+import { changeSelectedElement } from './store/canvasReduser';
 function App() {
   const dispath = useDispatch();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const [tooltype, setTooltype] = useState<Tool>('text');
-  const tooltype2 = useAppSelector(state => state.toolbar.tooltype);
-  const action2 = useAppSelector(state => state.toolbar.action);
-  const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
-    null
-  );
+  const tooltype = useAppSelector(state => state.toolbar.tooltype);
+  const action = useAppSelector(state => state.toolbar.action);
+  const selectedElement = useAppSelector(state => state.canvas.selectedElement);
+  //const [selectedElement, setSelectedElement] = useState<SelectPosition | null>(
+  //  null
+  //);
   const [elements, setElements, undo, redo] = useHistory({});
-  const [action, setAction] = useState<Action>('none');
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
@@ -195,11 +196,14 @@ function App() {
     }
     if (action === 'drawing') {
       const { id, position, points, type } = selectedElement as SelectPosition;
+      console.log('befoe', points[0], type);
       const pointIndex = points.length - 1;
 
       switch (type) {
         case 'line':
         case 'rect': {
+          console.log('after', points[0]);
+
           points[pointIndex] = {
             x1: points[pointIndex].x1,
             y1: points[pointIndex].y1,
@@ -328,6 +332,12 @@ function App() {
       text: event.currentTarget.value,
     });
   };
+
+  const setTooltype = (state: Tool) => dispath(changeTooltype(state));
+  const setAction = (state: Action) => dispath(changeAction(state));
+  const setSelectedElement = (state: SelectPosition | null) =>
+    dispath(changeSelectedElement(state));
+
   return (
     <>
       <div style={{ display: 'flex', position: 'fixed', top: 0 }}>

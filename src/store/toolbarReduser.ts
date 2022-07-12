@@ -16,11 +16,14 @@ export const toolbarSlice = createSlice({
   name: 'toolbarState',
   initialState,
   reducers: {
-    chageTooltype(state, action: PayloadAction<Tool>) {
+    changeTooltype(state, action: PayloadAction<Tool>) {
       state.tooltype = action.payload;
+    },
+    changeAction(state, actions: PayloadAction<Action>) {
+      state.action = actions.payload;
     },
   },
 });
 
-export const { chageTooltype } = toolbarSlice.actions;
+export const { changeTooltype, changeAction } = toolbarSlice.actions;
 export default toolbarSlice.reducer;
